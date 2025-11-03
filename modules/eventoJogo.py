@@ -18,6 +18,7 @@ class TipoEvento(Enum):
     ALUGUEL_PAGO = auto()
     CONSTRUCAO_FEITA = auto()
     JOGADOR_PRESO = auto()
+    SAIU_CADEIA = auto()
     JOGADOR_FALIU = auto()
 
 @dataclass(frozen=True)
