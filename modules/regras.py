@@ -25,7 +25,7 @@ class Regras:
         if propriedade.proprietario is not None:
             return False
 
-        if jogador.dinheiro < propriedade.preco:
+        if jogador.getSaldo() < propriedade.getPreco():
             return False
 
         return True
@@ -49,7 +49,7 @@ class Regras:
         if propriedade.num_casas >= self.MAX_CASAS:
             return False
 
-        if jogador.dinheiro < propriedade.custo_casa:
+        if jogador.getSaldo() < propriedade.getCustoCasa():
             return False
 
         return True
@@ -137,4 +137,24 @@ class Regras:
         retorna:
             bool - True se possui monopolio, False caso contrário
         """
-        return False
+        grupos_propriedades = {
+            "Marrom": 2,
+            "Azul Claro": 3,
+            "Rosa": 3,
+            "Laranja": 3,
+            "Vermelho": 3,
+            "Amarelo": 3,
+            "Verde": 3,
+            "Azul Escuro": 2
+        }
+
+        if cor not in grupos_propriedades:
+            return False
+
+        total_necessario = grupos_propriedades[cor]
+        propriedades_jogador = jogador.getPropriedades()
+
+        propriedades_cor = [p for p in propriedades_jogador
+                           if hasattr(p, 'cor') and p.cor == cor]
+
+        return len(propriedades_cor) >= total_necessario

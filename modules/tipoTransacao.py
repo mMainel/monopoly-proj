@@ -11,7 +11,7 @@ class TipoTransacao(Enum):
     CONSTRUCAO = "Construção"
     HIPOTECA = "Hipoteca"
     SALARIO = "Salário"
-    IMPOSTO = "Pagamento de Imposto"
+    IMPOSTO = "Pagamento de Pedágio da Ponte"
     FIANCA = "Fiança da Cadeia"
     LEILAO = "Leilão"
     TRANSFERENCIA = "Transferência entre Jogadores"

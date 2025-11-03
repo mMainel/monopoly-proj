@@ -92,7 +92,7 @@ def test_jogador_propriedades():
     print("-----")
     
     jogador = Jogador("Proprietário", Peca.CHAPEU)
-    prop = type('Propriedade', (), {'nome': 'Av. Atlântica'})()
+    prop = type('Propriedade', (), {'nome': 'Geografia'})()
     
     jogador.adicionarPropriedade(prop)
     assert len(jogador.getPropriedades()) == 1

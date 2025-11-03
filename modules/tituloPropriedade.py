@@ -1,6 +1,6 @@
 from typing import List
-from titulo import Titulo
-from regras import Regras
+from modules.titulo import Titulo
+from modules.regras import Regras
 
 class TituloPropriedade(Titulo):
     """

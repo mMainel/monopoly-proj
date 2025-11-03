@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from tipoTransacao import TipoTransacao
+from modules.tipoTransacao import TipoTransacao
 
 class Transacao:
     """

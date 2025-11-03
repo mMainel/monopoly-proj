@@ -1,6 +1,7 @@
 from typing import List
-from peca import Peca
-from regras import Regras
+from modules.peca import Peca
+from modules.regras import Regras
+from modules.tituloPropriedade import TituloPropriedade
 
 class Jogador:
     """
@@ -74,13 +75,24 @@ class Jogador:
     
     def pagarAoBanco(self, valor: int) -> bool:
         """
-        Deduz dinheiro do saldo do jogador. Se ficar negativo, declara falência
+        Deduz dinheiro do saldo do jogador. Se nao tiver saldo, tenta levantar fundos
         
         espera:
             valor: int - quantia a pagar
         retorna:
             bool - True se pagou com sucesso, False se ficou falido
         """
+        if self.saldo >= valor:
+            self.saldo -= valor
+            return True
+        
+        deficit = valor - self.saldo
+        
+        if self.tentarLevantarFundos(deficit):
+            if self.saldo >= valor:
+                self.saldo -= valor
+                return True
+        
         self.saldo -= valor
         
         if self.saldo < 0:
@@ -451,3 +463,94 @@ class Jogador:
         """
         return self.estaFalido
     
+    # GESTAO FINANCEIRA
+    def obterPropriedadesHipotecaveis(self) -> List:
+        """
+        Retorna lista de propriedades que podem ser hipotecadas
+        
+        espera:
+            nenhum parâmetro
+        retorna:
+            List - propriedades sem hipoteca e sem construcoes
+        """
+        
+        hipotecaveis = []
+        for prop in self.propriedades:
+            if not prop.estaHipotecada():
+                if isinstance(prop, TituloPropriedade):
+                    if hasattr(prop, 'podeHipotecar') and prop.podeHipotecar():
+                        hipotecaveis.append(prop)
+                else:
+                    hipotecaveis.append(prop)
+        
+        return hipotecaveis
+    
+    def obterPropriedadesDeshipotecaveis(self) -> List:
+        """
+        Retorna lista de propriedades hipotecadas que podem ser reativadas
+        
+        espera:
+            nenhum parâmetro
+        retorna:
+            List - propriedades hipotecadas
+        """
+        return [p for p in self.propriedades if p.estaHipotecada()]
+    
+    def obterPropriedadesComConstrucoes(self) -> List:
+        """
+        Retorna lista de propriedades com casas ou hoteis que podem ser vendidos
+        
+        espera:
+            nenhum parâmetro
+        retorna:
+            List - propriedades com construcoes
+        """
+        
+        com_construcoes = []
+        for prop in self.propriedades:
+            if isinstance(prop, TituloPropriedade):
+                if prop.num_casas > 0 or prop.tem_hotel:
+                    com_construcoes.append(prop)
+        
+        return com_construcoes
+    
+    def tentarLevantarFundos(self, valor_necessario: int) -> bool:
+        """
+        Tenta levantar fundos vendendo casas e hipotecando propriedades
+        
+        espera:
+            valor_necessario: int - quanto precisa levantar
+        retorna:
+            bool - True se conseguiu o valor, False caso contrario
+        """
+        valor_levantado = 0
+        
+        propriedades_com_construcoes = self.obterPropriedadesComConstrucoes()
+        propriedades_com_construcoes.sort(key=lambda p: p.num_casas, reverse=True)
+        
+        for prop in propriedades_com_construcoes:
+            while valor_levantado < valor_necessario and (prop.num_casas > 0 or prop.tem_hotel):
+                if prop.tem_hotel:
+                    if prop.venderHotel():
+                        valor_levantado += prop.getCustoCasa() // 2
+                elif prop.num_casas > 0:
+                    if prop.venderCasa():
+                        valor_levantado += prop.getCustoCasa() // 2
+                else:
+                    break
+            
+            if valor_levantado >= valor_necessario:
+                return True
+        
+        propriedades_hipotecaveis = self.obterPropriedadesHipotecaveis()
+        propriedades_hipotecaveis.sort(key=lambda p: p.getPreco(), reverse=True)
+        
+        for prop in propriedades_hipotecaveis:
+            if valor_levantado >= valor_necessario:
+                break
+            
+            valor_hipoteca = prop.hipotecar()
+            if valor_hipoteca > 0:
+                valor_levantado += valor_hipoteca
+        
+        return valor_levantado >= valor_necessario

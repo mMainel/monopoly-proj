@@ -17,7 +17,7 @@ def test_iniciar_leilao():
     jogador1 = Jogador("João", Peca.CACHORRO)
     jogador2 = Jogador("Maria", Peca.SAPATO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1, jogador2])
     
@@ -37,7 +37,7 @@ def test_fazer_lance_valido():
     jogador1 = Jogador("João", Peca.CACHORRO)
     jogador2 = Jogador("Maria", Peca.SAPATO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1, jogador2])
     
@@ -58,7 +58,7 @@ def test_fazer_lance_invalido_menor():
     jogador1 = Jogador("João", Peca.CACHORRO)
     jogador2 = Jogador("Maria", Peca.SAPATO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1, jogador2])
     leilao.fazerLance(jogador1, 100)
@@ -78,7 +78,7 @@ def test_fazer_lance_sem_saldo():
     leilao = Leilao()
     jogador1 = Jogador("João", Peca.CACHORRO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1])
     
@@ -98,7 +98,7 @@ def test_finalizar_leilao_com_vencedor():
     jogador2 = Jogador("Maria", Peca.SAPATO)
     
     propriedade = type('Propriedade', (), {
-        'nome': 'Avenida Atlântica',
+        'nome': 'Geografia',
         'preco': 300,
         'proprietario': None
     })()
@@ -125,7 +125,7 @@ def test_finalizar_leilao_sem_lances():
     leilao = Leilao()
     jogador1 = Jogador("João", Peca.CACHORRO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1])
     
@@ -144,7 +144,7 @@ def test_cancelar_leilao():
     leilao = Leilao()
     jogador1 = Jogador("João", Peca.CACHORRO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1])
     leilao.fazerLance(jogador1, 100)
@@ -165,7 +165,7 @@ def test_get_lance_maior():
     jogador1 = Jogador("João", Peca.CACHORRO)
     jogador2 = Jogador("Maria", Peca.SAPATO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1, jogador2])
     leilao.fazerLance(jogador1, 100)
@@ -184,7 +184,7 @@ def test_get_lider_atual():
     jogador1 = Jogador("João", Peca.CACHORRO)
     jogador2 = Jogador("Maria", Peca.SAPATO)
     
-    propriedade = type('Propriedade', (), {'nome': 'Avenida Atlântica', 'preco': 300})()
+    propriedade = type('Propriedade', (), {'nome': 'Geografia', 'preco': 300})()
     
     leilao.iniciarLeilao(propriedade, [jogador1, jogador2])
     leilao.fazerLance(jogador1, 100)

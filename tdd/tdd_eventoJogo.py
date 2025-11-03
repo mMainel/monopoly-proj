@@ -75,14 +75,14 @@ def test_evento_jogo_com_dados_complexos():
         tipo=TipoEvento.PROPRIEDADE_COMPRADA,
         dados={
             'jogador_id': 1,
-            'propriedade': 'Leblon',
+            'propriedade': 'Filosofia',
             'valor': 400,
             'casas': 0
         }
     )
     
     assert evento.dados['jogador_id'] == 1
-    assert evento.dados['propriedade'] == 'Leblon'
+    assert evento.dados['propriedade'] == 'Filosofia'
     assert evento.dados['valor'] == 400
 
 def test_eventos_diferentes_tem_timestamps_diferentes():

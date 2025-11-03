@@ -1,4 +1,4 @@
-from titulo import Titulo
+from modules.titulo import Titulo
 
 class TituloCompanhia(Titulo):
     """

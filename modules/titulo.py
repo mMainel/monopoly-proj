@@ -63,6 +63,29 @@ class Titulo(ABC):
             return valor_hipoteca
 
         return 0
+    
+    def deshipotecar(self) -> bool:
+        """
+        Remove a hipoteca pagando 110% do valor da hipoteca
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            bool - True se deshipotecou, False se nao tinha dinheiro ou nao estava hipotecada
+        """
+        if not self.hipotecada or self.proprietario is None:
+            return False
+        
+        valor_deshipoteca = int(self.preco * 0.55)
+        
+        if self.proprietario.getSaldo() < valor_deshipoteca:
+            return False
+        
+        if self.proprietario.pagarAoBanco(valor_deshipoteca):
+            self.hipotecada = False
+            return True
+        
+        return False
 
     def transferirPropriedade(self, novo_proprietario) -> None:
         """
