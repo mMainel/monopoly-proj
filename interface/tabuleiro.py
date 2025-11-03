@@ -5,8 +5,8 @@ import pygame
 # --- Configurações de Tela e Cores ---
 
 # Dimensões da tela - Ajuste conforme a necessidade
-LARGURA_TELA = 800
-ALTURA_TELA = 800
+LARGURA_TELA = 1366
+ALTURA_TELA = 768
 
 # Cores (RGB)
 BRANCO = (255, 255, 255)
@@ -16,33 +16,19 @@ VERMELHO = (255, 0, 0)
 
 # --- Configurações do Tabuleiro ---
 
-# O tabuleiro será quadrado e ocupará a maior parte da tela.
-# Lados externos (10 casas + 1 canto + 1 canto)
-NUM_CASAS_LADO = 11  # Canto + 9 casas + Canto
-TAMANHO_BORDA = 50   # Margem ao redor do tabuleiro
+NUM_CASAS_LADO = 10  
+TAMANHO_BORDA = 50   
 TAMANHO_TABULEIRO = LARGURA_TELA - (2 * TAMANHO_BORDA)
 TAMANHO_CASA_PEQUENA = TAMANHO_TABULEIRO // NUM_CASAS_LADO
-TAMANHO_CASA_CANTO = TAMANHO_CASA_PEQUENA * 2 # Casas de canto são o dobro
+TAMANHO_CASA_CANTO = TAMANHO_CASA_PEQUENA * 2 
 
-# Ajusta o tamanho da casa pequena para que o tabuleiro caiba perfeitamente
-# (Ajuste para a proporção 4 cantos + 4 lados de 9 casas)
-TAMANHO_CASA_PEQUENA = (TAMANHO_TABULEIRO - 4 * TAMANHO_CASA_CANTO) // 36 # Aproximação inicial
-# Vamos simplificar: 4 cantos + 4x9 casas = 40 casas totais.
-# Em cada lado há 1 canto + 9 casas, mas o canto é compartilhado.
-# Para um lado: 1 canto + 9 casas. Os 4 cantos formam a 'esquina'.
-# 4 cantos e 4 * 9 = 36 casas normais. Total de 40.
-# O lado tem 10 divisões: 1 canto + 9 casas.
-TAMANHO_CASA_PEQUENA = int((TAMANHO_TABULEIRO - 2 * TAMANHO_CASA_CANTO) / 9) # 9 casas pequenas no lado
+TAMANHO_CASA_PEQUENA = (TAMANHO_TABULEIRO - 4 * TAMANHO_CASA_CANTO) // 36 
+TAMANHO_CASA_PEQUENA = int((TAMANHO_TABULEIRO - 2 * TAMANHO_CASA_CANTO) / 9) 
 
-# Ajuste fino:
-# 1 lado = 1 canto + 9 casas pequenas.
-# Se TAMANHO_CASA_CANTO = 100, e TAMANHO_CASA_PEQUENA = 50.
-# Lado = 100 + 9*50 = 550.
 TAMANHO_CASA_PEQUENA = 60
-TAMANHO_CASA_CANTO = 120 # O canto será o dobro da casa pequena (2x2)
-TAMANHO_TABULEIRO = TAMANHO_CASA_CANTO * 2 + 9 * TAMANHO_CASA_PEQUENA # Tamanho total (120 + 540 + 120 = 780)
+TAMANHO_CASA_CANTO = 120
+TAMANHO_TABULEIRO = TAMANHO_CASA_CANTO * 2 + 9 * TAMANHO_CASA_PEQUENA 
 
-# Ponto de início do desenho do tabuleiro (canto superior esquerdo)
 POS_X_INICIO = (LARGURA_TELA - TAMANHO_TABULEIRO) // 2
 POS_Y_INICIO = (ALTURA_TELA - TAMANHO_TABULEIRO) // 2
 
@@ -63,8 +49,6 @@ class Tabuleiro:
         self.relogio = pygame.time.Clock()
         self.rodando = True
         
-        # O self.jogo precisa ser um Observador do jogo para receber atualizações,
-        # mas para a UI inicial, basta ter a referência.
 
     def desenhar_tabuleiro_estrutura(self):
         """Desenha a estrutura do tabuleiro (quadrado externo e divisões)."""
@@ -86,8 +70,6 @@ class Tabuleiro:
         pygame.draw.rect(self.tela, PRETO, miolo_rect, 1) # Borda do centro
         
         # 4. Desenhar as 40 casas
-        # A lógica para desenhar e posicionar as 40 casas é complexa.
-        # Para este código inicial, vamos focar nos cantos e nas linhas básicas.
         
         # Coordenadas das casas de canto (Top-Left corner)
         cantos = [
@@ -136,10 +118,8 @@ class Tabuleiro:
                 if evento.type == pygame.QUIT:
                     self.rodando = False
                 
-                # Aqui iriam os eventos de clique/teclado para interagir com a Lógica do Jogo
 
-            # 2. Lógica do Jogo (No futuro, chamaríamos métodos do self.jogo)
-            # Ex: self.jogo.executar_turno() se o input for 'lançar dados'
+            # 2. Lógica do Jogo 
 
             # 3. Desenho (Renderização)
             self.desenhar_tabuleiro_estrutura()
@@ -147,7 +127,6 @@ class Tabuleiro:
             # 4. Atualizar a tela
             pygame.display.flip()
             
-            # Limitar o FPS
             self.relogio.tick(30)
 
         pygame.quit()
