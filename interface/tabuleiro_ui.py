@@ -1,7 +1,6 @@
 from config import Config
 import pygame
 
-
 class TabuleiroUI:
     def __init__(self, jogo):
         pygame.init()
@@ -14,8 +13,13 @@ class TabuleiroUI:
         """Desenha toda a estrutura do tabuleiro."""
         self.tela.fill(Config.BRANCO)
 
-        # Quadrado principal do tabuleiro
-        tab_rect = pygame.Rect(Config.POS_X_INICIO, Config.POS_Y_INICIO, Config.TAMANHO_TABULEIRO, Config.TAMANHO_TABULEIRO)
+        # Tabuleiro alinhado à esquerda
+        tab_rect = pygame.Rect(
+            Config.POS_X_INICIO,
+            Config.POS_Y_INICIO,
+            Config.TAMANHO_TABULEIRO,
+            Config.TAMANHO_TABULEIRO,
+        )
         pygame.draw.rect(self.tela, Config.CINZA_CLARO, tab_rect)
         pygame.draw.rect(self.tela, Config.PRETO, tab_rect, 3)
 
@@ -72,8 +76,3 @@ class TabuleiroUI:
             pygame.draw.rect(self.tela, Config.CINZA_CLARO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
 
-        # Texto no centro
-        fonte = pygame.font.Font(None, 40)
-        texto = fonte.render("MONOPOLY UFFIANO", True, Config.PRETO)
-        texto_rect = texto.get_rect(center=(Config.LARGURA_TELA // 2, Config.ALTURA_TELA // 2))
-        self.tela.blit(texto, texto_rect)
