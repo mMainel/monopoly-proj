@@ -3,13 +3,16 @@ import os
 import time
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'interface')))
 
 from modules.jogo import Jogo
 from modules.observadorConsole import ObservadorConsole
 from modules.jogadorIA import JogadorIA
 
+from interface.tabuleiro import Tabuleiro
+
 def main() -> None:
-    """Ponto de entrada principal do jogo"""
+    """Ponto de entrada principal do jogo (adaptado)"""
     print("\n" + "=" * 60)
     print("BEM-VINDO AO MONOPOLY UFFIANO")
     print("=" * 60)
@@ -18,7 +21,10 @@ def main() -> None:
     nomes = solicitar_nomes_jogadores(num_jogadores)
     
     jogo = inicializar_jogo(nomes)
-    executar_jogo(jogo)
+    
+    # Chama a nova função de execução
+    executar_jogo_pygame(jogo)
+    
     finalizar_jogo(jogo)
 
 def solicitar_numero_jogadores() -> int:
@@ -56,6 +62,17 @@ def inicializar_jogo(nomes: list) -> Jogo:
         print("IA adicionada automaticamente ao jogo")
 
     return jogo
+
+def executar_jogo_pygame(jogo: Jogo) -> None:
+    """Loop principal do jogo (agora no Pygame)"""
+    if Tabuleiro:
+        print("\nIniciando interface Pygame...")
+        tabuleiro = Tabuleiro(jogo)
+        tabuleiro.loop_principal()
+    else:
+        # Se Pygame falhar, você pode optar por voltar para a versão de console
+        # ou simplesmente encerrar. Por enquanto, encerra.
+        print("Não foi possível iniciar a interface Pygame. Encerrando.")
 
 def executar_jogo(jogo: Jogo) -> None:
     """Loop principal do jogo"""
