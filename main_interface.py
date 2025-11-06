@@ -9,6 +9,7 @@ from modules.observadorConsole import ObservadorConsole
 from modules.jogadorIA import JogadorIA
 
 from interface.main_ui import main_ui
+from interface.player_setup_ui import rodar_setup_ui
 
 
 def main() -> None:
@@ -17,8 +18,10 @@ def main() -> None:
     print("BEM-VINDO AO MONOPOLY UFFIANO")
     print("=" * 60)
 
-    num_jogadores = solicitar_numero_jogadores()
-    nomes = solicitar_nomes_jogadores(num_jogadores)
+    print("Abrindo tela de configuração de jogadores...")
+    nomes = rodar_setup_ui()
+    #num_jogadores = solicitar_numero_jogadores()
+    #nomes = solicitar_nomes_jogadores(num_jogadores)
     
     jogo = inicializar_jogo(nomes)
 
