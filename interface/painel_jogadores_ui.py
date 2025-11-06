@@ -1,47 +1,41 @@
-# painel_jogadores_ui.py
 import pygame
 from config import Config
 
 class PainelJogadoresUI:
-    """
-    Painel responsivo para mostrar informações dos jogadores.
-    - Se 1..4 jogadores -> 1 coluna que preenche verticalmente.
-    - Se 5..8 jogadores -> 2 colunas (metade em cada).
-    O layout é recalculado a cada chamada de desenhar() (útil para janela redimensionável).
-    """
 
     def __init__(self, tela, jogadores, proporcao=0.30, margem=16):
         self.tela = tela
         self.jogadores = jogadores
-        self.proporcao = proporcao  # fração da largura da tela ocupada pelo painel
+        self.proporcao = proporcao 
         self.margem_externa = margem
-        # fontes serão inicializadas com tamanhos relativos em update_layout
+
         self.fonte_titulo = None
         self.fonte_info = None
 
-        # layout atual (será preenchido em update_layout)
+
         self.x = 0
         self.y = 0
         self.largura = 0
         self.altura = 0
 
-        self.update_layout()  # configura largura/altura iniciais
-
+        self.update_layout() 
+        
     def update_layout(self):
-        """(Re)calcula posições, tamanhos e fontes com base no tamanho atual da tela."""
+        """Recalcula posições, tamanhos e fontes com base no tamanho atual da tela."""
         largura_tela, altura_tela = self.tela.get_size()
 
-        # painel ocupa 'proporcao' da largura total, limitado a um mínimo e máximo razoável
+
         largura_calc = max(240, int(largura_tela * self.proporcao))
-        largura_calc = min(int(largura_tela * 0.45), largura_calc)  # não maior que 45% da tela
+        largura_calc = min(int(largura_tela * 0.45), largura_calc)  
+    
 
         self.largura = largura_calc
         self.x = largura_tela - self.largura - self.margem_externa
         self.y = self.margem_externa
         self.altura = altura_tela - 2 * self.margem_externa
 
-        # fontes escaláveis razoavelmente com a altura da tela
-        base = max(12, int(altura_tela / 32))   # exemplo: ~22 para 700px
+
+        base = max(12, int(altura_tela / 32))   
         self.fonte_titulo = pygame.font.Font(None, base + 8)
         self.fonte_info = pygame.font.Font(None, base)
 
@@ -96,10 +90,6 @@ class PainelJogadoresUI:
             self.desenhar_jogador(jogador, base_x, base_y, coluna_largura, altura_bloco)
 
     def desenhar_jogador(self, jogador, x, y, largura, altura):
-        """
-        Desenha as informações de um único jogador dentro da área (x,y,largura,altura).
-        campo: nome, saldo, posição, cadeia (se houver), número de propriedades.
-        """
         padding = 8
         cor_nome = (0, 100, 255) if not jogador.estaFalido else (180, 0, 0)
 

@@ -18,14 +18,21 @@ class Config:
     def atualizar_dimensoes(cls):
         cls.LARGURA_TABULEIRO = int(cls.LARGURA_TELA * cls.PROPORCAO_TABULEIRO)
         cls.LARGURA_PAINEL = cls.LARGURA_TELA - cls.LARGURA_TABULEIRO - 20
-
-        cls.TAMANHO_CASA_PEQUENA = cls.LARGURA_TABULEIRO // 13
+        
+        # Calcula tamanhos baseados na largura e altura disponíveis
+        largura_max = cls.LARGURA_TABULEIRO
+        altura_max = cls.ALTURA_TELA - 40
+        
+        # Calcula tamanhos de casa para cada dimensão
+        casa_largura = largura_max // 13
+        casa_altura = altura_max // 13
+        
+        # Usa o menor tamanho de casa
+        cls.TAMANHO_CASA_PEQUENA = min(casa_largura, casa_altura)
         cls.TAMANHO_CASA_CANTO = int(cls.TAMANHO_CASA_PEQUENA * 1.5)
-        cls.TAMANHO_TABULEIRO = (
-            cls.TAMANHO_CASA_CANTO * 2 + 9 * cls.TAMANHO_CASA_PEQUENA
-        )
+        cls.TAMANHO_TABULEIRO = (cls.TAMANHO_CASA_CANTO * 2 + 9 * cls.TAMANHO_CASA_PEQUENA)
 
-        cls.POS_X_INICIO = 20  # sempre encostado à esquerda
+        cls.POS_X_INICIO = 20  
         cls.POS_Y_INICIO = (cls.ALTURA_TELA - cls.TAMANHO_TABULEIRO) // 2
 
 
