@@ -73,16 +73,16 @@ class Jogo:
         for observador in self._observadores:
             observador.notificar(evento)
 
-    def iniciar_jogo(self, nomes_jogadores: List[str] = None) -> None:
-        """
-        Inicializa o jogo com jogadores reais e IA
-        Se apenas 1 nome for fornecido, adiciona uma IA automaticamente
+    """def iniciar_jogo(self, nomes_jogadores: List[str] = None) -> None:
+       
+        # Inicializa o jogo com jogadores reais e IA
+        # Se apenas 1 nome for fornecido, adiciona uma IA automaticamente
 
-        espera:
-            nomes_jogadores: List[str] - nomes dos jogadores (mínimo 1, máximo 8)
-        retorna:
-            None
-        """
+        # espera:
+        #     nomes_jogadores: List[str] - nomes dos jogadores (mínimo 1, máximo 8)
+        # retorna:
+        #     None
+        
         if nomes_jogadores is None:
             nomes_jogadores = ["Jogador 1"]
 
@@ -101,6 +101,56 @@ class Jogo:
         for i, nome in enumerate(nomes_jogadores):
             peca = pecas_disponiveis[i % len(pecas_disponiveis)]
 
+            if nome == "IA":
+                jogador = JogadorIA(nome, peca)
+            else:
+                jogador = Jogador(nome, peca)
+
+            self.jogadores.append(jogador)
+
+        self.jogadorAtual = self.jogadores[0]
+        self.turno = 1
+        self._jogo_ativo = True
+
+        self.tabuleiro.inicializar_cartas_completas(self)
+
+        self._publicar_evento(TipoEvento.TURNO_INICIADO, {
+            'turno': self.turno,
+            'jogador': self.jogadorAtual
+        })"""
+        
+    def iniciar_jogo(self, jogadores_config: List[tuple] = None) -> None:
+        """
+        Inicializa o jogo com jogadores reais e IA
+        Recebe uma lista de tuplas (nome, peca)
+
+        espera:
+            jogadores_config: List[Tuple[str, Peca]] - (nome, peca) dos jogadores
+        retorna:
+            None
+        """
+        if jogadores_config is None:
+            # Fallback se o jogo for iniciado sem config
+            pecas_disponiveis = list(Peca)
+            jogadores_config = [("Jogador 1", pecas_disponiveis[0])]
+
+        if len(jogadores_config) < 1:
+            raise ValueError("O jogo precisa de pelo menos 1 jogador")
+
+        # Se apenas 1 jogador, adiciona IA
+        if len(jogadores_config) == 1:
+            peca_usada = jogadores_config[0][1]
+            # Pega a primeira peça que não foi usada
+            peca_ia = Peca.BIOLOGIA if peca_usada != Peca.BIOLOGIA else Peca.ARTES
+            jogadores_config.append(("IA", peca_ia))
+
+        if len(jogadores_config) > 8:
+            raise ValueError("O jogo suporta no máximo 8 jogadores")
+
+        
+        self.jogadores = []
+
+        for nome, peca in jogadores_config:
             if nome == "IA":
                 jogador = JogadorIA(nome, peca)
             else:

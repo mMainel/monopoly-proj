@@ -1,5 +1,7 @@
 # painel_jogadores_ui.py
 import pygame
+import os
+from modules.peca import Peca
 from config import Config
 
 class PainelJogadoresUI:
@@ -24,8 +26,24 @@ class PainelJogadoresUI:
         self.y = 0
         self.largura = 0
         self.altura = 0
+        
+        caminho_base = os.path.dirname(__file__)  # .../interface
+        caminho_raiz = os.path.join(caminho_base, '..')  # .../
+        self.caminho_assets_pecas = os.path.join(caminho_raiz, 'assets', 'pecas')
+        self.image_cache = {}
 
         self.update_layout()  # configura largura/altura iniciais
+        
+    def _get_tinted_color(self, color, tint_factor=0.6):
+        """Mistura a cor da peça com branco para criar um fundo pastel."""
+        # Garante que a cor não seja muito escura (ex: Preto do fallback)
+        if sum(color) < 100:
+             return (245, 245, 245) # Fallback para bege
+             
+        r = int(color[0] + (255 - color[0]) * tint_factor)
+        g = int(color[1] + (255 - color[1]) * tint_factor)
+        b = int(color[2] + (255 - color[2]) * tint_factor)
+        return (r, g, b)
 
     def update_layout(self):
         """(Re)calcula posições, tamanhos e fontes com base no tamanho atual da tela."""
@@ -48,7 +66,7 @@ class PainelJogadoresUI:
     def desenhar(self):
         """Desenha o painel completo; chama desenhar_jogador para cada jogador."""
         self.update_layout()
-
+        
         # Painel de fundo
         painel_rect = pygame.Rect(self.x, self.y, self.largura, self.altura)
         pygame.draw.rect(self.tela, Config.CINZA_CLARO, painel_rect)
@@ -101,26 +119,57 @@ class PainelJogadoresUI:
         campo: nome, saldo, posição, cadeia (se houver), número de propriedades.
         """
         padding = 8
-        cor_nome = (0, 100, 255) if not jogador.estaFalido else (180, 0, 0)
-
+        
         # fundo e borda do cartão do jogador
         jogador_rect = pygame.Rect(x, y, largura, altura)
         pygame.draw.rect(self.tela, (245, 245, 245), jogador_rect)
         pygame.draw.rect(self.tela, Config.PRETO, jogador_rect, 1)
 
-        # opcional: bolinha de cor/identificador da peça (se existir)
-        try:
-            peca = jogador.getPeca()
-            # se peca tiver cor ou id, desenhar um círculo; fallback para azul
-            cor_peca = getattr(peca, "cor", (20, 120, 255))
-        except Exception:
-            cor_peca = (20, 120, 255)
+        peca = jogador.getPeca() 
+        # Cor sólida (para bolinha e nome)
+        cor_peca = Config.CORES_PECAS.get(peca, Config.PRETO) #
+        # Cor do nome (vermelho se falido)
+        cor_nome = cor_peca if not jogador.estaFalido else (180, 0, 0)
+        # Cor de fundo (versão pastel da cor da peça)
+        cor_fundo_jogador = self._get_tinted_color(cor_peca)
+        
+        jogador_rect = pygame.Rect(x, y, largura, altura)
+        pygame.draw.rect(self.tela, cor_fundo_jogador, jogador_rect)
+        
+        #imagem
+        if peca: # Desenha apenas se a peça for válida
+            nome_imagem = f"{peca.name}.png"
+            imagem_peca = self.image_cache.get(nome_imagem)
+
+            if not imagem_peca:
+                try:
+                    caminho_completo = os.path.join(self.caminho_assets_pecas, nome_imagem)
+                    img = pygame.image.load(caminho_completo).convert_alpha()
+                    
+                    # Redimensiona para uma proporção do cartão (ex: 80% da altura do cartão)
+                    # Mantém a proporção 1:1 original da imagem
+                    target_size = int(altura * 0.7) 
+                    img = pygame.transform.scale(img, (target_size, target_size))
+                    
+                    # Define a opacidade (alpha value: 0-255)
+                    img.set_alpha(75) # Ajuste este valor para mais ou menos opacidade (ex: 50 a 100)
+                    
+                    self.image_cache[nome_imagem] = img
+                    imagem_peca = img
+                except Exception as e:
+                    #print(f"Erro ao carregar imagem da peça {nome_imagem}: {e}") # Para debug
+                    self.image_cache[nome_imagem] = False # Cache falha
+            
+            if imagem_peca:
+                # Centraliza a imagem no fundo do cartão do jogador
+                img_rect = imagem_peca.get_rect(center=jogador_rect.center)
+                self.tela.blit(imagem_peca, img_rect)
 
         raio = max(6, min(12, altura // 8))
         centro_cx = x + padding + raio
         centro_cy = y + padding + raio
-        pygame.draw.circle(self.tela, cor_peca, (centro_cx, centro_cy), raio)
-        pygame.draw.circle(self.tela, Config.PRETO, (centro_cx, centro_cy), raio, 1)
+        #pygame.draw.circle(self.tela, cor_peca, (centro_cx, centro_cy), raio)
+        #pygame.draw.circle(self.tela, Config.PRETO, (centro_cx, centro_cy), raio, 1)
 
         # Nome (alinhado à direita da bolinha)
         nome_x = centro_cx + raio + 6
