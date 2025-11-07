@@ -1,29 +1,21 @@
 import sys
 import os
-import random # Necessário para mockar o shuffle
-
-# Adiciona o diretório raiz ao sys.path para permitir importações de 'modules'
+import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Importações dos módulos que vamos testar
 from modules.baralhoCartas import BaralhoCartas
 from modules.carta import Carta, CartaSorte, CartaReves, TipoCarta
 
-# --- Mocks e Stubs ---
-# Criamos classes de Carta simples para o teste focado no baralho
 class MockCartaSorte(Carta):
     def __init__(self, descricao: str):
         super().__init__(descricao)
     def executar(self, jogador) -> None:
-        pass # Não precisamos da execução aqui
+        pass
 
 class MockCartaReves(Carta):
     def __init__(self, descricao: str):
         super().__init__(descricao)
     def executar(self, jogador) -> None:
-        pass # Não precisamos da execução aqui
-
-# --- Testes ---
+        pass
 
 def test_baralho_inicializacao():
     """Testa a inicialização de um baralho vazio"""
@@ -96,10 +88,10 @@ def test_baralho_sacar_e_retornar():
     print("Sacar de baralho vazio retorna None")
     
     # Teste de retornar (coloca no fim)
-    baralho.retornarCarta(carta_sacada1) # Devolve Carta A
+    baralho.retornarCarta(carta_sacada1)
     assert baralho.getTamanho() == 1
     
-    baralho.retornarCarta(carta_sacada2) # Devolve Carta B
+    baralho.retornarCarta(carta_sacada2)
     assert baralho.getTamanho() == 2
     
     # Verifica se a ordem de retorno está correta (FIFO)
@@ -121,7 +113,6 @@ def test_baralho_embaralhar():
     baralho = BaralhoCartas(TipoCarta.SORTE)
     
     cartas_ordenadas = []
-    # Adiciona 20 cartas para garantir que o embaralhamento seja perceptível
     for i in range(20):
         carta = MockCartaSorte(f"Carta {i}")
         baralho.adicionarCarta(carta)
@@ -130,7 +121,6 @@ def test_baralho_embaralhar():
     # Guardamos a referência da função original
     original_shuffle = random.shuffle
     
-    # Mockamos a função shuffle para inverter a lista (um embaralhamento determinístico)
     def mock_shuffle(lista):
         lista.reverse()
     
@@ -155,7 +145,6 @@ def test_baralho_embaralhar():
     assert ordem_depois != cartas_ordenadas
     
     print("Baralho embaralhado (com mock) com sucesso")
-
 
 # --- Executando os testes ---
 if __name__ == "__main__":
