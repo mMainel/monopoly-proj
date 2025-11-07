@@ -1,9 +1,8 @@
 from modules.carta import CartaSorte, CartaReves, CartaSairCadeia, TipoCarta
 
-
 def criar_cartas_sorte(jogo) -> list:
     """
-    Cria as cartas do baralho Sorte com contexto universitário brasileiro
+    Cria as cartas do baralho Sorte com contexto universitário
 
     espera:
         jogo: Jogo - instância do jogo para acesso a componentes
@@ -118,10 +117,9 @@ def criar_cartas_sorte(jogo) -> list:
 
     return cartas
 
-
 def criar_cartas_reves(jogo) -> list:
     """
-    Cria as cartas do baralho Revés com contexto universitário brasileiro
+    Cria as cartas do baralho Revés com contexto universitário
 
     espera:
         jogo: Jogo - instância do jogo para acesso a componentes

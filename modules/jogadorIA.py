@@ -132,4 +132,3 @@ class JogadorIA(Jogador):
             bool - True se deve vender
         """
         return self.saldo < 50
-

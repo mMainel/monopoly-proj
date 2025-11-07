@@ -282,11 +282,10 @@ def finalizar_jogo(jogo: Jogo) -> None:
     print("\n--- Status Final ---")
     
     for jogador in jogo.jogadores:
-        tipo = "[IA]" if isinstance(jogador, JogadorIA) else ""
         status = "(FALIDO)" if jogador.verificarFalencia() else ""
         props = f"{len(jogador.getPropriedades())} props"
         
-        print(f"{tipo} {jogador.getNome()}: R$ {jogador.getSaldo()} | {props} {status}")
+        print(f"{jogador.getNome()}: R$ {jogador.getSaldo()} | {props} {status}")
 
 if __name__ == "__main__":
     try:
