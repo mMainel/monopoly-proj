@@ -10,7 +10,6 @@ class TabuleiroUI:
         self.relogio = pygame.time.Clock()
 
     def desenhar_tabuleiro(self):
-        """Desenha toda a estrutura do tabuleiro."""
         self.tela.fill(Config.BRANCO)
 
         # Tabuleiro alinhado à esquerda
