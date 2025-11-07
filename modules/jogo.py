@@ -14,7 +14,9 @@ from modules.banco import Banco
 from modules.tabuleiro import Tabuleiro
 from modules.peca import Peca
 from modules.leilao import Leilao
-
+from modules.regras import Regras
+from modules.tituloPropriedade import TituloPropriedade
+        
 class Jogo:
     """
     Classe principal que orquestra o fluxo do jogo Monopoly
@@ -326,33 +328,37 @@ class Jogo:
     def tratarPagamentoAluguel(self, jogador, propriedade) -> None:
         """
         Processa o pagamento de aluguel quando jogador cai em propriedade de outro
-        
+
         espera:
             jogador: Jogador - jogador que deve pagar
             propriedade: Propriedade - propriedade onde caiu
         retorna:
             None
         """
+
         if not hasattr(propriedade, 'proprietario') or propriedade.proprietario is None:
             return
-        
+
         if propriedade.proprietario == jogador:
             return
-        
-        aluguel = self._regras.calcular_aluguel(propriedade)
-        
+
+        if propriedade.estaHipotecada():
+            return
+
+        aluguel = self._regras.calcular_aluguel(propriedade, self.dados)
+
         if self.banco and hasattr(self.banco, 'transferir'):
             sucesso = self.banco.transferir(jogador, propriedade.proprietario, aluguel)
         else:
             sucesso = jogador.pagarAluguel(propriedade.proprietario, aluguel)
-        
+
         self._publicar_evento(TipoEvento.ALUGUEL_PAGO, {
             'pagador': jogador,
             'recebedor': propriedade.proprietario,
             'propriedade': propriedade,
             'valor': aluguel
         })
-        
+
         if not sucesso:
             jogador.declararFalencia()
             self._publicar_evento(TipoEvento.JOGADOR_FALIU, {
@@ -401,7 +407,6 @@ class Jogo:
         
         elif opcao == "fianca":
             if jogador.podePagarFianca():
-                from modules.regras import Regras
                 regras = Regras()
                 fianca = regras.obter_valor_prisao()
                 
@@ -462,8 +467,6 @@ class Jogo:
         retorna:
             None
         """
-        from modules.tituloPropriedade import TituloPropriedade
-
         propriedades_construiveis = []
         for prop in jogador.getPropriedades():
             if isinstance(prop, TituloPropriedade):
@@ -543,43 +546,302 @@ class Jogo:
         """
         Permite ao jogador construir casas e hoteis
         Delega para Banco a venda de casas/hoteis
-        
+
         espera:
             jogador: Jogador - jogador que deseja construir
         retorna:
             None
         """
-        from modules.tituloPropriedade import TituloPropriedade
-        from modules.jogadorIA import JogadorIA
-        
-        propriedades_monopolio = [p for p in jogador.getPropriedades() 
+        propriedades_monopolio = [p for p in jogador.getPropriedades()
                                   if isinstance(p, TituloPropriedade) and jogador.possuiMonopolio(p.cor)]
-        
+
         if not propriedades_monopolio:
             return
-        
+
         if isinstance(jogador, JogadorIA):
-            construiveis = [p for p in propriedades_monopolio 
-                           if p.num_casas < 4 and not p.tem_hotel and jogador.getSaldo() >= p.getCustoCasa()]
-            
-            if construiveis:
-                prop = jogador.escolher_propriedade_construir(construiveis)
-                if prop and jogador.decidir_construir_casa(prop):
-                    if self.banco.comprarCasa(prop, jogador):
-                        self._publicar_evento(TipoEvento.CONSTRUCAO_FEITA, {
-                            'jogador': jogador,
-                            'propriedade': prop,
-                            'tipo': 'casa'
-                        })
+            self._processar_construcoes_ia(jogador, propriedades_monopolio)
+        else:
+            self._processar_construcoes_humano(jogador, propriedades_monopolio)
+
+    def _processar_construcoes_ia(self, jogador, propriedades_monopolio) -> None:
+        """
+        Processa construcoes para IA
+
+        espera:
+            jogador: JogadorIA - jogador IA
+            propriedades_monopolio: List - propriedades em monopolio
+        retorna:
+            None
+        """
+        construiveis = [p for p in propriedades_monopolio
+                       if p.num_casas < 4 and not p.tem_hotel and jogador.getSaldo() >= p.getCustoCasa()]
+
+        if construiveis:
+            prop = jogador.escolher_propriedade_construir(construiveis)
+            if prop and jogador.decidir_construir_casa(prop):
+                if self.banco.comprarCasa(prop, jogador):
+                    self._publicar_evento(TipoEvento.CONSTRUCAO_FEITA, {
+                        'jogador': jogador,
+                        'propriedade': prop,
+                        'tipo': 'casa'
+                    })
+
+    def _processar_construcoes_humano(self, jogador, propriedades_monopolio) -> None:
+        """
+        Menu interativo para construcoes de jogador humano
+
+        espera:
+            jogador: Jogador - jogador humano
+            propriedades_monopolio: List - propriedades em monopolio
+        retorna:
+            None
+        """
+        while True:
+            print(f"\n{'='*60}")
+            print(f"CONSTRUCOES - {jogador.getNome()}")
+            print(f"Saldo: R$ {jogador.getSaldo()}")
+            print(f"Casas disponiveis no banco: {self.banco.getCasasDisponiveis()}")
+            print(f"Hoteis disponiveis no banco: {self.banco.getHoteisDisponiveis()}")
+            print(f"{'='*60}")
+            print("1 - Construir casa")
+            print("2 - Construir hotel")
+            print("0 - Voltar")
+
+            escolha = input("\nEscolha: ").strip()
+
+            if escolha == "1":
+                self._construir_casa_menu(jogador, propriedades_monopolio)
+            elif escolha == "2":
+                self._construir_hotel_menu(jogador, propriedades_monopolio)
+            elif escolha == "0":
+                break
+
+    def _construir_casa_menu(self, jogador, propriedades_monopolio) -> None:
+        """
+        Menu para construir casa
+
+        espera:
+            jogador: Jogador - jogador
+            propriedades_monopolio: List - propriedades em monopolio
+        retorna:
+            None
+        """
+        construiveis = [p for p in propriedades_monopolio
+                       if p.num_casas < 4 and not p.tem_hotel and not p.estaHipotecada()]
+
+        if not construiveis:
+            print("\nNenhuma propriedade disponivel para construir casa")
+            print("(Precisam ter menos de 4 casas e nao estar hipotecadas)")
+            return
+
+        print("\nPropriedades disponiveis:")
+        for i, p in enumerate(construiveis, 1):
+            casas_str = f"{p.num_casas} casas" if p.num_casas > 0 else "sem casas"
+            pode_comprar = "OK" if jogador.getSaldo() >= p.getCustoCasa() else "SALDO INSUFICIENTE"
+            print(f"{i} - {p.getNome()} ({p.getCor()}) - {casas_str} - Custo: R$ {p.getCustoCasa()} [{pode_comprar}]")
+
+        try:
+            idx = int(input("\nEscolha a propriedade (0 cancelar): "))
+            if idx > 0 and idx <= len(construiveis):
+                prop = construiveis[idx - 1]
+
+                if jogador.getSaldo() < prop.getCustoCasa():
+                    print(f"\nSaldo insuficiente! Precisa de R$ {prop.getCustoCasa()}")
+                    return
+
+                if self.banco.getCasasDisponiveis() <= 0:
+                    print("\nBanco sem casas disponiveis!")
+                    return
+
+                if self.banco.comprarCasa(prop, jogador):
+                    print(f"\nCasa construida em {prop.getNome()}!")
+                    print(f"Total de casas: {prop.num_casas}")
+                    print(f"Novo aluguel: R$ {prop.calcularAluguel()}")
+                    self._publicar_evento(TipoEvento.CONSTRUCAO_FEITA, {
+                        'jogador': jogador,
+                        'propriedade': prop,
+                        'tipo': 'casa'
+                    })
+                else:
+                    print("\nNao foi possivel construir a casa")
+        except ValueError:
+            print("\nOpcao invalida")
+
+    def _construir_hotel_menu(self, jogador, propriedades_monopolio) -> None:
+        """
+        Menu para construir hotel
+
+        espera:
+            jogador: Jogador - jogador
+            propriedades_monopolio: List - propriedades em monopolio
+        retorna:
+            None
+        """
+        construiveis = [p for p in propriedades_monopolio
+                       if p.num_casas == 4 and not p.tem_hotel and not p.estaHipotecada()]
+
+        if not construiveis:
+            print("\nNenhuma propriedade disponivel para construir hotel")
+            print("(Precisam ter exatamente 4 casas)")
+            return
+
+        print("\nPropriedades disponiveis:")
+        for i, p in enumerate(construiveis, 1):
+            pode_comprar = "OK" if jogador.getSaldo() >= p.getCustoCasa() else "SALDO INSUFICIENTE"
+            print(f"{i} - {p.getNome()} ({p.getCor()}) - 4 casas - Custo: R$ {p.getCustoCasa()} [{pode_comprar}]")
+
+        try:
+            idx = int(input("\nEscolha a propriedade (0 cancelar): "))
+            if idx > 0 and idx <= len(construiveis):
+                prop = construiveis[idx - 1]
+
+                if jogador.getSaldo() < prop.getCustoCasa():
+                    print(f"\nSaldo insuficiente! Precisa de R$ {prop.getCustoCasa()}")
+                    return
+
+                if self.banco.getHoteisDisponiveis() <= 0:
+                    print("\nBanco sem hoteis disponiveis!")
+                    return
+
+                if self.banco.comprarHotel(prop, jogador):
+                    print(f"\nHotel construido em {prop.getNome()}!")
+                    print(f"As 4 casas foram devolvidas ao banco")
+                    print(f"Novo aluguel: R$ {prop.calcularAluguel()}")
+                    self._publicar_evento(TipoEvento.CONSTRUCAO_FEITA, {
+                        'jogador': jogador,
+                        'propriedade': prop,
+                        'tipo': 'hotel'
+                    })
+                else:
+                    print("\nNao foi possivel construir o hotel")
+        except ValueError:
+            print("\nOpcao invalida")
     
     def processarGestaoFinanceira(self, jogador) -> None:
         """
         Interface para jogador gerenciar hipotecas e vendas
         Apenas orquestra - delegando para Banco e Titulo
-        
+
         espera:
             jogador: Jogador - jogador que deseja gerenciar
         retorna:
             None
         """
-        pass
+
+        while True:
+            print(f"\n{'='*60}")
+            print(f"GESTAO FINANCEIRA - {jogador.getNome()}")
+            print(f"Saldo: R$ {jogador.getSaldo()}")
+            print(f"{'='*60}")
+            print("1 - Vender casa")
+            print("2 - Vender hotel")
+            print("3 - Hipotecar propriedade")
+            print("4 - Deshipotecar propriedade")
+            print("0 - Voltar")
+
+            escolha = input("\nEscolha: ").strip()
+
+            if escolha == "1":
+                props = jogador.obterPropriedadesComConstrucoes()
+                if not props:
+                    print("\nVoce nao tem construcoes para vender")
+                    continue
+
+                print("\nPropriedades:")
+                for i, p in enumerate(props, 1):
+                    print(f"{i} - {p.getNome()} ({p.num_casas} casas, {'hotel' if p.tem_hotel else 'sem hotel'})")
+
+                try:
+                    idx = int(input("Escolha (0 cancelar): "))
+                    if idx > 0 and idx <= len(props):
+                        prop = props[idx - 1]
+                        if self.banco.venderCasa(prop, jogador):
+                            print(f"Casa vendida por R$ {prop.getCustoCasa() // 2}")
+                            self._publicar_evento(TipoEvento.CONSTRUCAO_VENDIDA, {
+                                'jogador': jogador,
+                                'propriedade': prop,
+                                'tipo': 'casa'
+                            })
+                except ValueError:
+                    print("Opcao invalida")
+
+            elif escolha == "2":
+                props = [p for p in jogador.getPropriedades()
+                        if isinstance(p, TituloPropriedade) and p.tem_hotel]
+                if not props:
+                    print("\nVoce nao tem hoteis para vender")
+                    continue
+
+                print("\nPropriedades com hotel:")
+                for i, p in enumerate(props, 1):
+                    print(f"{i} - {p.getNome()}")
+
+                try:
+                    idx = int(input("Escolha (0 cancelar): "))
+                    if idx > 0 and idx <= len(props):
+                        prop = props[idx - 1]
+                        if self.banco.venderHotel(prop, jogador):
+                            print(f"Hotel vendido por R$ {prop.getCustoCasa() // 2}")
+                            self._publicar_evento(TipoEvento.CONSTRUCAO_VENDIDA, {
+                                'jogador': jogador,
+                                'propriedade': prop,
+                                'tipo': 'hotel'
+                            })
+                except ValueError:
+                    print("Opcao invalida")
+
+            elif escolha == "3":
+                props = jogador.obterPropriedadesHipotecaveis()
+                if not props:
+                    print("\nVoce nao tem propriedades para hipotecar")
+                    continue
+
+                print("\nPropriedades disponiveis:")
+                for i, p in enumerate(props, 1):
+                    print(f"{i} - {p.getNome()} (Valor: R$ {p.getPreco() // 2})")
+
+                try:
+                    idx = int(input("Escolha (0 cancelar): "))
+                    if idx > 0 and idx <= len(props):
+                        prop = props[idx - 1]
+                        valor = self.banco.hipotecarPropriedade(prop, jogador)
+                        if valor > 0:
+                            print(f"Propriedade hipotecada por R$ {valor}")
+                            self._publicar_evento(TipoEvento.PROPRIEDADE_HIPOTECADA, {
+                                'jogador': jogador,
+                                'propriedade': prop,
+                                'valor': valor
+                            })
+                except ValueError:
+                    print("Opcao invalida")
+
+            elif escolha == "4":
+                props = jogador.obterPropriedadesDeshipotecaveis()
+                if not props:
+                    print("\nVoce nao tem propriedades hipotecadas")
+                    continue
+
+                print("\nPropriedades hipotecadas:")
+                for i, p in enumerate(props, 1):
+                    custo = int(p.getPreco() * 0.55)
+                    print(f"{i} - {p.getNome()} (Custo: R$ {custo})")
+
+                try:
+                    idx = int(input("Escolha (0 cancelar): "))
+                    if idx > 0 and idx <= len(props):
+                        prop = props[idx - 1]
+                        custo = int(prop.getPreco() * 0.55)
+                        if jogador.getSaldo() < custo:
+                            print(f"Saldo insuficiente (precisa de R$ {custo})")
+                        elif prop.deshipotecar():
+                            print(f"Propriedade deshipotecada por R$ {custo}")
+                            self._publicar_evento(TipoEvento.PROPRIEDADE_DESHIPOTECADA, {
+                                'jogador': jogador,
+                                'propriedade': prop,
+                                'valor': custo
+                            })
+                except ValueError:
+                    print("Opcao invalida")
+
+            elif escolha == "0":
+                break
