@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class TipoEvento(Enum):
     """
     Classe com os enums dos eventos do jogo
-    o auto é só pra não termos que ficar definindo numeros para os eventos. 
+    o auto é só pra não termos que ficar definindo numeros para os eventos
     """
     TURNO_INICIADO = auto()
     TURNO_FINALIZADO = auto()
@@ -17,9 +17,16 @@ class TipoEvento(Enum):
     PROPRIEDADE_COMPRADA = auto()
     ALUGUEL_PAGO = auto()
     CONSTRUCAO_FEITA = auto()
+    CONSTRUCAO_VENDIDA = auto()
     JOGADOR_PRESO = auto()
     SAIU_CADEIA = auto()
     JOGADOR_FALIU = auto()
+    PROPRIEDADE_HIPOTECADA = auto()
+    PROPRIEDADE_DESHIPOTECADA = auto()
+    LEILAO_INICIADO = auto()
+    LEILAO_LANCE_DADO = auto()
+    LEILAO_FINALIZADO = auto()
+    LEILAO_SEM_VENCEDOR = auto()
 
 @dataclass(frozen=True)
 class EventoJogo:

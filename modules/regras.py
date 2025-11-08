@@ -1,4 +1,6 @@
 from typing import Optional
+from modules.tituloCompanhia import TituloCompanhia
+from modules.tituloEstacao import TituloEstacao
 
 class Regras:
     """
@@ -10,7 +12,7 @@ class Regras:
     SALARIO_VOLTA: int = 200
     FIANCA_CADEIA: int = 50
     MAX_CASAS: int = 4
-    MAX_DUPLAS: int = 2
+    MAX_DUPLAS: int = 3
 
     def validar_compra(self, jogador: object, propriedade: object) -> bool:
         """
@@ -54,23 +56,30 @@ class Regras:
 
         return True
 
-    def calcular_aluguel(self, propriedade: object) -> int:
+    def calcular_aluguel(self, propriedade: object, dados: object = None) -> int:
         """
         Calcula o valor do aluguel de uma propriedade
 
         espera:
             propriedade: Titulo - propriedade para calcular aluguel
+            dados: Dados - instancia dos dados (necessario para Companhias)
         retorna:
             int - valor do aluguel
         """
-        if not hasattr(propriedade, 'num_casas'):
-            return propriedade.aluguel_base
 
-        if propriedade.num_casas > 0:
-            if hasattr(propriedade, 'alugueis') and len(propriedade.alugueis) >= propriedade.num_casas:
-                return propriedade.alugueis[propriedade.num_casas - 1]
+        if propriedade.estaHipotecada():
+            return 0
 
-        return propriedade.aluguel_base
+        if isinstance(propriedade, TituloCompanhia):
+            if dados and hasattr(dados, 'soma_dados'):
+                valor_dados = dados.soma_dados()
+                return propriedade.calcularAluguel(valor_dados)
+            return 0
+
+        if isinstance(propriedade, TituloEstacao):
+            return propriedade.calcularAluguel()
+
+        return propriedade.calcularAluguel()
 
     def obter_saldo_inicial(self) -> int:
         """

@@ -69,6 +69,9 @@ class TituloPropriedade(Titulo):
         if self.proprietario.getSaldo() < self.custo_casa:
             return False
 
+        if not self._validar_construcao_uniforme():
+            return False
+
         if self.proprietario.pagarAoBanco(self.custo_casa):
             self.num_casas += 1
             return True
@@ -237,3 +240,37 @@ class TituloPropriedade(Titulo):
             List[int] - lista de valores de aluguel
         """
         return self.alugueis.copy()
+
+    def _validar_construcao_uniforme(self) -> bool:
+        """
+        Valida regra de construção uniforme: casas devem ser distribuídas uniformemente
+        Não pode construir se houver outra propriedade do grupo com menos casas
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            bool - True se pode construir, False se violaria a regra uniforme
+        """
+        if self.proprietario is None:
+            return False
+
+        todas_propriedades = self.proprietario.getPropriedades()
+
+        propriedades_do_grupo = []
+        for p in todas_propriedades:
+            if not isinstance(p, TituloPropriedade):
+                continue
+            if p.cor != self.cor:
+                continue
+            propriedades_do_grupo.append(p)
+
+        casas_atuais = self.num_casas
+
+        for prop in propriedades_do_grupo:
+            if prop == self:
+                continue
+
+            if prop.num_casas < casas_atuais:
+                return False
+
+        return True

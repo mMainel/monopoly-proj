@@ -440,16 +440,25 @@ class Jogador:
     
     # FALÊNCIA
     
-    def declararFalencia(self) -> None:
+    def declararFalencia(self, credor=None) -> None:
         """
-        Declara o jogador como falido e zera seu saldo
-        
+        Declara o jogador como falido e transfere propriedades ao credor
+
         espera:
-            nenhum parâmetro
+            credor: Jogador - credor que receberá as propriedades (None = banco)
         retorna:
             None
         """
         self.estaFalido = True
+
+        if credor is not None:
+            self._transferirTodasPropriedades(credor)
+        else:
+            self._devolverPropriedadesAoBanco()
+
+        if self.cartasSairCadeia > 0:
+            self.cartasSairCadeia = 0
+
         self.saldo = 0
     
     def verificarFalencia(self) -> bool:
@@ -554,3 +563,40 @@ class Jogador:
                 valor_levantado += valor_hipoteca
         
         return valor_levantado >= valor_necessario
+
+    def _transferirTodasPropriedades(self, novo_proprietario) -> None:
+        """
+        Transfere todas as propriedades do jogador falido para o credor
+
+        espera:
+            novo_proprietario: Jogador - jogador que receberá as propriedades
+        retorna:
+            None
+        """
+        propriedades_para_transferir = self.propriedades.copy()
+
+        for prop in propriedades_para_transferir:
+            prop.transferirPropriedade(novo_proprietario)
+            self.removerPropriedade(prop)
+            novo_proprietario.adicionarPropriedade(prop)
+
+    def _devolverPropriedadesAoBanco(self) -> None:
+        """
+        Devolve todas as propriedades ao banco (remove proprietário)
+        Propriedades ficam disponíveis para leilão
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            None
+        """
+        propriedades_para_devolver = self.propriedades.copy()
+
+        for prop in propriedades_para_devolver:
+            if hasattr(prop, 'num_casas'):
+                prop.num_casas = 0
+            if hasattr(prop, 'tem_hotel'):
+                prop.tem_hotel = False
+
+            prop.transferirPropriedade(None)
+            self.removerPropriedade(prop)
