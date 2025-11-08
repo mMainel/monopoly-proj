@@ -16,8 +16,8 @@ class TextInputBox:
         self.fonte = fonte_texto
         self.active = False
         self.is_default = True 
-        self.border_radius = 10 # <-- Arredondamento
-
+        self.border_radius = int(h * 0.33)
+        
     def handle_event(self, event):
         """Processa eventos de mouse e teclado."""
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -49,8 +49,9 @@ class TextInputBox:
         
         txt_surface = self.fonte.render(self.text, True, Config.PRETO)
         text_y = self.rect.y + (self.rect.height - txt_surface.get_height()) // 2
-        screen.blit(txt_surface, (self.rect.x + 10, text_y))
-
+        padding_x = int(self.rect.width * 0.033) 
+        screen.blit(txt_surface, (self.rect.x + padding_x, text_y))
+        
     def get_text(self):
         return self.text
 
@@ -68,30 +69,25 @@ class PieceSelector:
         self.fonte_peca = fonte_peca
         self.fonte_setas = fonte_setas
         self.caminho_assets = caminho_assets_pecas
-        
-        # --- MUDANÇA 1: Redefinir layout interno ---
-        
-        # 1. Área da Imagem/Setas (à esquerda)
-        self.visual_width = 120  # Largura fixa para a parte [<] [IMG] [>]
-        self.image_size = h - 1  # Tamanho quadrado 1:1 para a imagem
+                
+        self.visual_width = int(w * 0.6)
+        self.image_size = int(h * 0.95)
         self.image_center_pos = (x + self.visual_width // 2, y + h // 2)
         
         
         self.placeholder_rect = pygame.Rect(0, 0, self.image_size, self.image_size)
         self.placeholder_rect.center = self.image_center_pos
 
+        btn_w = int(w * 0.15)
+        self.btn_anterior = pygame.Rect(x, y, btn_w, h)
+        self.btn_proximo = pygame.Rect(x + self.visual_width - btn_w, y, btn_w, h)
         
-        self.btn_anterior = pygame.Rect(x, y, 30, h)
-        self.btn_proximo = pygame.Rect(x + self.visual_width - 30, y, 30, h)
-        
-       
-        self.circle_radius = 13
-        self.circle_center_x = x + self.visual_width + 10 
+        self.circle_radius = int(h * 0.23)
+        self.circle_center_x = x + self.visual_width + int(w*0.05)
         self.circle_center_y = y + h // 2
         
-        self.text_start_x = self.circle_center_x + self.circle_radius + 6
+        self.text_start_x = self.circle_center_x + self.circle_radius + int(w*0.03)
         
-
         self.image_cache = {}
         
     def get_selected_piece(self) -> Peca:
@@ -171,39 +167,40 @@ def rodar_setup_ui():
     Retorna None se o usuário fechar a janela.
     """
     pygame.init()
-    tela = pygame.display.set_mode((Config.LARGURA_TELA, Config.ALTURA_TELA))
+    
+    TELA_W = Config.LARGURA_TELA
+    TELA_H = Config.ALTURA_TELA
+    tela = pygame.display.set_mode((TELA_W, TELA_H))
     pygame.display.set_caption("Configurar Jogo - Monopoly Uffiano")
     relogio = pygame.time.Clock()
     pygame.key.set_repeat(300, 30)
     
-    # --- Caminhos e Imagens ---
     caminho_base = os.path.dirname(__file__) # .../interface
-    caminho_raiz = os.path.join(caminho_base, '..') # .../
+    caminho_raiz = os.path.join(caminho_base, '..') 
     caminho_imagem_lobby = os.path.join(caminho_raiz, 'assets', 'lobby.png')
-    caminho_assets_pecas = os.path.join(caminho_raiz, 'assets', 'pecas') # <-- Caminho para as peças
+    caminho_assets_pecas = os.path.join(caminho_raiz, 'assets', 'pecas') # Caminho para as peças
     
     background_image = pygame.image.load(caminho_imagem_lobby)
     background_image = pygame.transform.scale(background_image, (Config.LARGURA_TELA, Config.ALTURA_TELA))
 
-
-    fonte_titulo = pygame.font.Font(None, 50) 
-    fonte_label = pygame.font.Font(None, 28)  
-    fonte_normal = pygame.font.Font(None, 28) 
-    fonte_input = pygame.font.Font(None, 28)  
-    fonte_num_botao = pygame.font.Font(None, 24)
-    fonte_peca = pygame.font.Font(None, 22) # Fonte para nome da peça
-    fonte_setas = pygame.font.Font(None, 36) # Fonte para setas < >
-
+    fonte_titulo = pygame.font.Font(None, int(TELA_H * 0.071))
+    fonte_label = pygame.font.Font(None, int(TELA_H * 0.04))
+    fonte_normal = pygame.font.Font(None, int(TELA_H * 0.04))
+    fonte_input = pygame.font.Font(None, int(TELA_H * 0.04))
+    fonte_num_botao = pygame.font.Font(None, int(TELA_H * 0.034))
+    fonte_peca = pygame.font.Font(None, int(TELA_H * 0.031))
+    fonte_setas = pygame.font.Font(None, int(TELA_H * 0.051))
+    
     # --- Configuração Botões de Número (2-8) ---
     num_jogadores = 2
     botoes_num = []
-    BTN_RAIO = 20
-    BTN_SPACING = 15
+    BTN_RAIO = int(TELA_H * 0.028)
+    BTN_SPACING = int(TELA_W * 0.0125)
     NUM_BOTOES = 7 
     
     total_largura_botoes = (NUM_BOTOES * (BTN_RAIO * 2)) + ((NUM_BOTOES - 1) * BTN_SPACING)
-    start_x = (Config.LARGURA_TELA - total_largura_botoes) // 2
-    botoes_y = 220 # Posição Y dos botões
+    start_x = (TELA_W - total_largura_botoes) // 2
+    botoes_y = int(TELA_H * 0.314)
 
     for i in range(NUM_BOTOES):
         num = i + 2
@@ -214,19 +211,21 @@ def rodar_setup_ui():
     text_boxes = []
     piece_selectors = [] # <-- Lista para seletores
     
-    BOX_WIDTH = 300 # Largura reduzida
-    BOX_HEIGHT = 30
-    SELECTOR_WIDTH = 200 # Largura do seletor
-    SELECTOR_HEIGHT = 55
-    BOX_SPACING = 44
+    BOX_WIDTH = int(TELA_W * 0.25)
+    BOX_HEIGHT = int(TELA_H * 0.042)
+    SELECTOR_WIDTH = int(TELA_W * 0.166)
+    SELECTOR_HEIGHT = int(TELA_H * 0.078)
+    BOX_SPACING = int(TELA_H * 0.062)
     
-    # Centraliza o conjunto (Label + Caixa + Seletor)
-    total_linha_width = 130 + BOX_WIDTH + SELECTOR_WIDTH + 20 # (Label + Caixa + Espaço + Seletor)
-    start_x_label = (Config.LARGURA_TELA - total_linha_width) // 2
-    start_x_box = start_x_label + 130
-    start_x_selector = start_x_box + BOX_WIDTH + 20
+    # Layout centralizado
+    label_width = int(TELA_W * 0.108)
+    spacing_after_box = int(TELA_W * 0.016)
+    total_linha_width = label_width + BOX_WIDTH + spacing_after_box + SELECTOR_WIDTH
+    start_x_label = (TELA_W - total_linha_width) // 2
+    start_x_box = start_x_label + label_width
+    start_x_selector = start_x_box + BOX_WIDTH + spacing_after_box
     
-    box_base_y = 250
+    box_base_y = int(TELA_H * 0.357)
     pecas_disponiveis = list(Peca)
 
     def atualizar_componentes_jogador(num_selecionado):
@@ -246,10 +245,11 @@ def rodar_setup_ui():
     atualizar_componentes_jogador(num_jogadores) 
 
     # --- Botão Iniciar ---
-    BTN_INICIAR_W = 220
-    BTN_INICIAR_H = 60
-    btn_iniciar = pygame.Rect((Config.LARGURA_TELA - BTN_INICIAR_W) // 2, 600, BTN_INICIAR_W, BTN_INICIAR_H)
-    btn_iniciar_radius = 15
+    BTN_INICIAR_W = int(TELA_W * 0.183)
+    BTN_INICIAR_H = int(TELA_H * 0.085) 
+    btn_iniciar_y = int(TELA_H * 0.857)
+    btn_iniciar = pygame.Rect((TELA_W - BTN_INICIAR_W) // 2, btn_iniciar_y, BTN_INICIAR_W, BTN_INICIAR_H)
+    btn_iniciar_radius = int(TELA_H * 0.021)
     erro_duplicado = False
 
     rodando = True
@@ -286,15 +286,18 @@ def rodar_setup_ui():
 
         # --- Lógica de Desenho ---
         tela.blit(background_image, (0, 0))
+        
+        titulo_y = int(TELA_H * 0.19)
+        label_y = int(TELA_H * 0.24)
 
         # Título
         titulo_render = fonte_titulo.render("CONFIGURAR JOGO", True, Config.PRETO)
-        tela.blit(titulo_render, (Config.LARGURA_TELA // 2 - titulo_render.get_width() // 2, 133)) # Y mais alto
+        tela.blit(titulo_render, (TELA_W // 2 - titulo_render.get_width() // 2, titulo_y))
 
         # Label "Selecione..."
         label_render = fonte_label.render("Selecione a quantidade de jogadores", True, Config.PRETO)
-        tela.blit(label_render, (Config.LARGURA_TELA // 2 - label_render.get_width() // 2, 170)) # Y abaixo do título
-
+        tela.blit(label_render, (TELA_W // 2 - label_render.get_width() // 2, label_y))
+        
         # Seletor de número de jogadores (Botões Redondos)
         for btn in botoes_num:
             cor_fundo = Config.PRETO if btn['num'] == num_jogadores else Config.BRANCO

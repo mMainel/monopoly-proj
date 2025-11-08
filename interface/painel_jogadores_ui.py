@@ -27,7 +27,7 @@ class PainelJogadoresUI:
 
         self.update_layout()  # configura largura/altura iniciais
         
-    def _get_tinted_color(self, color, tint_factor=0.6):
+    def _get_tinted_color(self, color, tint_factor=0.25):
         """Mistura a cor da peça com branco para criar um fundo pastel."""
         # Garante que a cor não seja muito escura (ex: Preto do fallback)
         if sum(color) < 100:
@@ -138,11 +138,11 @@ class PainelJogadoresUI:
                     
                     # Redimensiona para uma proporção do cartão (ex: 80% da altura do cartão)
                     # Mantém a proporção 1:1 original da imagem
-                    target_size = int(altura * 0.7) 
+                    target_size = int(altura * 0.6) 
                     img = pygame.transform.smoothscale(img, (target_size, target_size))
                     
-                    # Define a opacidade (alpha value: 0-255)
-                    img.set_alpha(75) # Ajuste este valor para mais ou menos opacidade (ex: 50 a 100)
+                    # Define a opacidade
+                    img.set_alpha(230) 
                     
                     self.image_cache[nome_imagem] = img
                     imagem_peca = img
