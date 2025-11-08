@@ -89,10 +89,10 @@ class Titulo(ABC):
 
     def transferirPropriedade(self, novo_proprietario) -> None:
         """
-        Transfere a propriedade para outro jogador
+        Transfere a propriedade para outro jogador ou devolve ao banco
 
         espera:
-            novo_proprietario: Jogador - novo dono da propriedade
+            novo_proprietario: Jogador - novo dono da propriedade (None = banco)
         retorna:
             None
         """
@@ -100,7 +100,9 @@ class Titulo(ABC):
             self.proprietario.removerPropriedade(self)
 
         self.proprietario = novo_proprietario
-        novo_proprietario.adicionarPropriedade(self)
+
+        if novo_proprietario is not None:
+            novo_proprietario.adicionarPropriedade(self)
 
     # GETTERS
 

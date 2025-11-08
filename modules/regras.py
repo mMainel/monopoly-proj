@@ -12,7 +12,7 @@ class Regras:
     SALARIO_VOLTA: int = 200
     FIANCA_CADEIA: int = 50
     MAX_CASAS: int = 4
-    MAX_DUPLAS: int = 2
+    MAX_DUPLAS: int = 3
 
     def validar_compra(self, jogador: object, propriedade: object) -> bool:
         """
