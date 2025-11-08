@@ -1,5 +1,6 @@
 from config import Config
 import pygame
+import os
 
 class TabuleiroUI:
     def __init__(self, jogo):
@@ -8,6 +9,12 @@ class TabuleiroUI:
         self.tela = pygame.display.set_mode((Config.LARGURA_TELA, Config.ALTURA_TELA))
         pygame.display.set_caption("Monopoly Uffiano - Pygame")
         self.relogio = pygame.time.Clock()
+        #Carregar arte do tabuleiro
+        caminho_base = os.path.dirname(__file__) 
+        caminho_raiz = os.path.join(caminho_base, '..')
+        caminho_imagem = os.path.join(caminho_raiz, 'assets', 'tabuleiroBG.jpg')
+        img = pygame.image.load(caminho_imagem)
+        self.imagem_fundo_tabuleiro = pygame.transform.scale(img, (Config.TAMANHO_TABULEIRO, Config.TAMANHO_TABULEIRO))
 
     def desenhar_tabuleiro(self):
         self.tela.fill(Config.BRANCO)
@@ -74,4 +81,6 @@ class TabuleiroUI:
             rect = pygame.Rect(x, y, Config.TAMANHO_CASA_CANTO, Config.TAMANHO_CASA_PEQUENA)
             pygame.draw.rect(self.tela, Config.CINZA_CLARO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
+            
+        self.tela.blit(self.imagem_fundo_tabuleiro, (Config.POS_X_INICIO, Config.POS_Y_INICIO))
 
