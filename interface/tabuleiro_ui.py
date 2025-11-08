@@ -14,7 +14,7 @@ class TabuleiroUI:
         caminho_raiz = os.path.join(caminho_base, '..')
         caminho_imagem = os.path.join(caminho_raiz, 'assets', 'tabuleiroBG.jpg')
         img = pygame.image.load(caminho_imagem)
-        self.imagem_fundo_tabuleiro = pygame.transform.scale(img, (Config.TAMANHO_TABULEIRO, Config.TAMANHO_TABULEIRO))
+        self.imagem_fundo_tabuleiro = pygame.transform.smoothscale(img, (Config.TAMANHO_TABULEIRO, Config.TAMANHO_TABULEIRO))
 
     def desenhar_tabuleiro(self):
         self.tela.fill(Config.BRANCO)

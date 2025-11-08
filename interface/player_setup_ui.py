@@ -135,7 +135,7 @@ class PieceSelector:
             try:
                 caminho_completo = os.path.join(self.caminho_assets, nome_imagem)
                 img = pygame.image.load(caminho_completo).convert_alpha()
-                img = pygame.transform.scale(img, (self.placeholder_rect.width - 10, self.placeholder_rect.height - 10))
+                img = pygame.transform.smoothscale(img, (self.placeholder_rect.width - 10, self.placeholder_rect.height - 10))
                 self.image_cache[nome_imagem] = img
                 imagem_carregada = img
             except Exception as e:

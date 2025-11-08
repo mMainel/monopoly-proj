@@ -139,7 +139,7 @@ class PainelJogadoresUI:
                     # Redimensiona para uma proporção do cartão (ex: 80% da altura do cartão)
                     # Mantém a proporção 1:1 original da imagem
                     target_size = int(altura * 0.7) 
-                    img = pygame.transform.scale(img, (target_size, target_size))
+                    img = pygame.transform.smoothscale(img, (target_size, target_size))
                     
                     # Define a opacidade (alpha value: 0-255)
                     img.set_alpha(75) # Ajuste este valor para mais ou menos opacidade (ex: 50 a 100)
