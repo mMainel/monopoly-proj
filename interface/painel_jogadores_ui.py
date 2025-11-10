@@ -113,9 +113,15 @@ class PainelJogadoresUI:
                 try:
                     caminho_completo = os.path.join(self.caminho_assets_pecas, nome_imagem)
                     img = pygame.image.load(caminho_completo).convert_alpha()
-                    target_size = int(altura * 0.7) 
-                    img = pygame.transform.scale(img, (target_size, target_size))
-                    img.set_alpha(75)
+                    
+                    # Redimensiona para uma proporção do cartão (ex: 80% da altura do cartão)
+                    # Mantém a proporção 1:1 original da imagem
+                    target_size = int(altura * 0.6) 
+                    img = pygame.transform.smoothscale(img, (target_size, target_size))
+                    
+                    # Define a opacidade
+                    img.set_alpha(230) 
+                    
                     self.image_cache[nome_imagem] = img
                     imagem_peca = img
                 except Exception as e:
