@@ -1,51 +1,77 @@
 import pygame
+from config import Config
 
 class BotaoDadoUI:
     def __init__(self, tela, jogo):
-        """
-        Inicializa o botão "Rodar Dado".
-        :param tela: Superfície do Pygame onde o botão será desenhado.
-        :param jogo: Instância do jogo para acessar jogadores e lógica.
-        """
         self.tela = tela
         self.jogo = jogo
-        self.turno_atual = 0  # Índice do jogador atual
-
-        # Configuração do botão
-        self.largura = 200
-        self.altura = 60
+        self.clicado = False
+        self.habilitado = True  
+        
+        self.largura = 220
+        self.altura = 70
+        
+        centro_tabuleiro_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO // 2
+        centro_tabuleiro_y = Config.POS_Y_INICIO + Config.TAMANHO_TABULEIRO // 2
+        
         self.rect = pygame.Rect(
-            (self.tela.get_width() - self.largura) // 2,
-            (self.tela.get_height() - self.altura) // 2,
+            centro_tabuleiro_x - self.largura // 2,
+            centro_tabuleiro_y + 20,  # Logo abaixo do feed de eventos
             self.largura,
             self.altura
         )
+        
         self.fonte = pygame.font.Font(None, 36)
-        self.texto = self.fonte.render("Rodar Dado", True, pygame.Color("white"))
-        self.texto_rect = self.texto.get_rect(center=self.rect.center)
+        self.fonte_nome = pygame.font.Font(None, 24)
+        self.cor_normal = (0, 120, 200)
+        self.cor_hover = (0, 150, 255)
+        self.cor_desabilitado = (100, 100, 100)
 
     def desenhar(self):
-        """Desenha o botão na tela."""
-        pygame.draw.rect(self.tela, pygame.Color("blue"), self.rect)
-        self.tela.blit(self.texto, self.texto_rect)
+        mouse_pos = pygame.mouse.get_pos()
+        
+        if not self.habilitado:
+            cor = self.cor_desabilitado
+        elif self.rect.collidepoint(mouse_pos):
+            cor = self.cor_hover
+        else:
+            cor = self.cor_normal
+        
+        pygame.draw.rect(self.tela, cor, self.rect, border_radius=15)
+        pygame.draw.rect(self.tela, Config.PRETO, self.rect, 4, border_radius=15)
+        
+        texto_str = "JOGAR"
+        texto = self.fonte.render(texto_str, True, Config.BRANCO)
+        texto_rect = texto.get_rect(center=(self.rect.centerx, self.rect.centery - 10))
+        self.tela.blit(texto, texto_rect)
+        
+        jogador_atual = self.jogo.jogadorAtual if self.jogo else None
+        if jogador_atual:
+            nome_texto = self.fonte_nome.render(f"Turno: {jogador_atual.getNome()}", True, Config.BRANCO)
+            nome_rect = nome_texto.get_rect(center=(self.rect.centerx, self.rect.centery + 15))
+            self.tela.blit(nome_texto, nome_rect)
+        
+        if not self.habilitado:
+            aviso = pygame.font.Font(None, 22).render("Processando...", True, (255, 255, 100))
+            aviso_rect = aviso.get_rect(center=(self.rect.centerx, self.rect.y - 20))
+            self.tela.blit(aviso, aviso_rect)
 
     def handle_event(self, evento):
-        """
-        Processa eventos relacionados ao botão.
-        :param evento: Evento do Pygame.
-        """
+        if not self.habilitado:
+            return
+        
         if evento.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(evento.pos):
-                self.rodar_dado()
+                self.clicado = True
 
-    def rodar_dado(self):
-        """Lógica de rodar o dado e mover o jogador."""
-        jogador_atual = self.jogo.jogadores[self.turno_atual]
-        resultado_dados = self.jogo.dados.lancar()
-        self.jogo._mover_jogador(jogador_atual, resultado_dados)
-
-        # Processar eventos da casa onde o jogador parou
-        self.jogo.tabuleiro.executarAcaoEspaco(jogador_atual.posicao, jogador_atual, self.jogo)
-
-        # Passar o turno para o próximo jogador
-        self.turno_atual = (self.turno_atual + 1) % len(self.jogo.jogadores)
+    def foi_clicado(self):
+        if self.clicado:
+            self.clicado = False
+            return True
+        return False
+    
+    def habilitar(self):
+        self.habilitado = True
+    
+    def desabilitar(self):
+        self.habilitado = False

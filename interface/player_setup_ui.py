@@ -4,9 +4,6 @@ import os
 from modules.peca import Peca
 
 class TextInputBox:
-    """
-    Classe para criar uma caixa de input de texto no Pygame.
-    """
     def __init__(self, x, y, w, h, fonte_texto, text=''):
         self.rect = pygame.Rect(x, y, w, h)
         self.color_inactive = Config.CINZA_CLARO
@@ -19,7 +16,6 @@ class TextInputBox:
         self.border_radius = int(h * 0.33)
         
     def handle_event(self, event):
-        """Processa eventos de mouse e teclado."""
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
                 if not self.active: 
@@ -43,7 +39,6 @@ class TextInputBox:
                     self.text += event.unicode
 
     def draw(self, screen):
-        """Desenha a caixa de texto na tela com cantos arredondados."""
         pygame.draw.rect(screen, Config.BRANCO, self.rect, border_radius=self.border_radius)
         pygame.draw.rect(screen, self.color, self.rect, 2, border_radius=self.border_radius)
         
@@ -57,12 +52,7 @@ class TextInputBox:
 
 
 class PieceSelector:
-    """
-    Widget de UI para selecionar uma Peça do Monopoly com setas.
-    """
     def __init__(self, x, y, w, h, fonte_peca, fonte_setas, caminho_assets_pecas):
-        # O rect (x,y,w,h) agora representa a ÁREA TOTAL do widget, 
-        # incluindo o texto à direita.
         self.rect = pygame.Rect(x, y, w, h)
         self.pecas_disponiveis = list(Peca)
         self.indice_atual = 0
@@ -73,7 +63,6 @@ class PieceSelector:
         self.visual_width = int(w * 0.6)
         self.image_size = int(h * 0.95)
         self.image_center_pos = (x + self.visual_width // 2, y + h // 2)
-        
         
         self.placeholder_rect = pygame.Rect(0, 0, self.image_size, self.image_size)
         self.placeholder_rect.center = self.image_center_pos
@@ -91,37 +80,29 @@ class PieceSelector:
         self.image_cache = {}
         
     def get_selected_piece(self) -> Peca:
-        """Retorna o Enum Peca atualmente selecionado."""
         return self.pecas_disponiveis[self.indice_atual]
 
     def set_indice(self, indice):
-        """Define o índice (usado para definir peças padrão)."""
         self.indice_atual = indice % len(self.pecas_disponiveis)
 
     def handle_event(self, event):
-        """Processa cliques nos botões de seta."""
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.btn_anterior.collidepoint(event.pos):
                 self.indice_atual = (self.indice_atual - 1) % len(self.pecas_disponiveis)
-                return True # Indica que houve mudança
+                return True
             if self.btn_proximo.collidepoint(event.pos):
                 self.indice_atual = (self.indice_atual + 1) % len(self.pecas_disponiveis)
-                return True # Indica que houve mudança
+                return True
         return False
 
     def draw(self, screen):
-        """Desenha o seletor (setas, placeholder/imagem e nome)."""
-        # Desenha setas
         seta_anterior_render = self.fonte_setas.render("<", True, Config.PRETO)
         screen.blit(seta_anterior_render, seta_anterior_render.get_rect(center=self.btn_anterior.center))
         
         seta_proxima_render = self.fonte_setas.render(">", True, Config.PRETO)
         screen.blit(seta_proxima_render, seta_proxima_render.get_rect(center=self.btn_proximo.center))
         
-
-        # --- Lógica para desenhar Placeholder ou Imagem Real ---
         peca_selecionada = self.get_selected_piece()
-        # Usa Peca.ARTES.name -> "ARTES"
         nome_imagem = f"{peca_selecionada.name}.png" 
         cor_da_peca = Config.CORES_PECAS.get(peca_selecionada, Config.CINZA_CLARO)
         
@@ -135,37 +116,25 @@ class PieceSelector:
                 self.image_cache[nome_imagem] = img
                 imagem_carregada = img
             except Exception as e:
-                # Se falhar (ex: imagem não encontrada), armazena False no cache
                 self.image_cache[nome_imagem] = False 
         
         if imagem_carregada:
-            # Desenha a imagem real
             screen.blit(imagem_carregada, imagem_carregada.get_rect(center=self.placeholder_rect.center))
         else:
-            # Desenha o retângulo genérico (placeholder)
             pygame.draw.rect(screen, Config.CINZA_CLARO, self.placeholder_rect)
             pygame.draw.rect(screen, Config.PRETO, self.placeholder_rect, 1)
-        # -------------------------------------
 
         nome_peca = peca_selecionada.value 
 
-        # 1. Desenha a bolinha
         pygame.draw.circle(screen, cor_da_peca, (self.circle_center_x, self.circle_center_y), self.circle_radius)
-        pygame.draw.circle(screen, Config.PRETO, (self.circle_center_x, self.circle_center_y), self.circle_radius, 1) # Borda
+        pygame.draw.circle(screen, Config.PRETO, (self.circle_center_x, self.circle_center_y), self.circle_radius, 1)
 
-        # 2. Desenha o nome
         nome_render = self.fonte_peca.render(nome_peca, True, Config.PRETO)
-        
-        # Coloca o nome AO LADO da bolinha, centralizado verticalmente
         nome_rect = nome_render.get_rect(left=self.text_start_x, centery=self.rect.centery)
         screen.blit(nome_render, nome_rect)
 
 
 def rodar_setup_ui():
-    """
-    Executa o loop da tela de setup (lobby) e retorna uma lista de tuplas (nome, peca).
-    Retorna None se o usuário fechar a janela.
-    """
     pygame.init()
     
     TELA_W = Config.LARGURA_TELA
@@ -207,9 +176,8 @@ def rodar_setup_ui():
         centro_x = start_x + (i * (BTN_RAIO * 2 + BTN_SPACING)) + BTN_RAIO
         botoes_num.append({'rect': pygame.Rect(centro_x - BTN_RAIO, botoes_y - BTN_RAIO, BTN_RAIO * 2, BTN_RAIO * 2), 'num': num})
 
-    # --- Configuração Linhas de Jogador (Caixa de Texto + Seletor de Peça) ---
     text_boxes = []
-    piece_selectors = [] # <-- Lista para seletores
+    piece_selectors = []
     
     BOX_WIDTH = int(TELA_W * 0.25)
     BOX_HEIGHT = int(TELA_H * 0.042)
@@ -229,7 +197,6 @@ def rodar_setup_ui():
     pecas_disponiveis = list(Peca)
 
     def atualizar_componentes_jogador(num_selecionado):
-        """Atualiza ambas as listas: text_boxes e piece_selectors."""
         text_boxes.clear()
         piece_selectors.clear()
         for i in range(num_selecionado):
@@ -239,7 +206,7 @@ def rodar_setup_ui():
             text_boxes.append(TextInputBox(start_x_box, y_pos_box, BOX_WIDTH, BOX_HEIGHT, fonte_input, text=f"Jogador {i + 1}"))
             
             selector = PieceSelector(start_x_selector, y_pos_selector, SELECTOR_WIDTH, SELECTOR_HEIGHT, fonte_peca, fonte_setas, caminho_assets_pecas)
-            selector.set_indice(i % len(pecas_disponiveis)) # Define peça inicial (0, 1, 2...)
+            selector.set_indice(i % len(pecas_disponiveis))
             piece_selectors.append(selector)
 
     atualizar_componentes_jogador(num_jogadores) 
@@ -258,7 +225,6 @@ def rodar_setup_ui():
         pecas_selecionadas = set()
         erro_duplicado = False
         
-        # --- Processamento de Eventos ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 rodando = False
@@ -266,35 +232,28 @@ def rodar_setup_ui():
                 return None 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                # Botão Iniciar Jogo (só funciona se não houver erro)
                 if btn_iniciar.collidepoint(event.pos) and not erro_duplicado:
                     rodando = False 
                     
-                # Botões de Número (2-8)
                 for btn in botoes_num:
                     if btn['rect'].collidepoint(event.pos):
                         if num_jogadores != btn['num']:
                             num_jogadores = btn['num']
                             atualizar_componentes_jogador(num_jogadores)
             
-            # Passa eventos para as caixas de texto
             for box in text_boxes:
                 box.handle_event(event)
-            # Passa eventos para os seletores de peça
             for selector in piece_selectors:
                 selector.handle_event(event)
 
-        # --- Lógica de Desenho ---
         tela.blit(background_image, (0, 0))
         
         titulo_y = int(TELA_H * 0.19)
         label_y = int(TELA_H * 0.24)
 
-        # Título
         titulo_render = fonte_titulo.render("CONFIGURAR JOGO", True, Config.PRETO)
         tela.blit(titulo_render, (TELA_W // 2 - titulo_render.get_width() // 2, titulo_y))
 
-        # Label "Selecione..."
         label_render = fonte_label.render("Selecione a quantidade de jogadores", True, Config.PRETO)
         tela.blit(label_render, (TELA_W // 2 - label_render.get_width() // 2, label_y))
         
@@ -308,36 +267,30 @@ def rodar_setup_ui():
             num_rect = num_surf.get_rect(center=btn['rect'].center)
             tela.blit(num_surf, num_rect)
         
-        # Desenha as caixas de texto e seletores
         pecas_selecionadas.clear()
         
         for i in range(num_jogadores):
             box = text_boxes[i]
             selector = piece_selectors[i]
             
-            # Checa duplicatas
             peca = selector.get_selected_piece()
             if peca in pecas_selecionadas:
                 erro_duplicado = True
             pecas_selecionadas.add(peca)
             
-            # Label "Jogador X:"
             label = fonte_normal.render(f"Jogador {i+1}:", True, Config.PRETO)
             label_y = box.rect.y + (box.rect.height - label.get_height()) // 2
             tela.blit(label, (start_x_label, label_y))
             
-            # Caixa de Texto
             box.draw(tela)
-            # Seletor de Peça
             selector.draw(tela)
 
-        # Botão Iniciar (com cantos arredondados)
-        cor_botao_iniciar = (150, 150, 150) if erro_duplicado else (0, 100, 200) # Cinza se houver erro
+        cor_botao_iniciar = (150, 150, 150) if erro_duplicado else (0, 100, 200)
         pygame.draw.rect(tela, cor_botao_iniciar, btn_iniciar, border_radius=btn_iniciar_radius)
         
         texto_botao = "INICIAR JOGO"
         if erro_duplicado:
-            texto_botao = "Peças duplicadas!" # Mostra erro
+            texto_botao = "Peças duplicadas!"
             
         iniciar_render = fonte_normal.render(texto_botao, True, Config.BRANCO)
         iniciar_rect = iniciar_render.get_rect(center=btn_iniciar.center)
@@ -346,7 +299,6 @@ def rodar_setup_ui():
         pygame.display.flip()
         relogio.tick(60)
 
-    # --- Fim do Loop: Coleta os dados ---
     dados_finais = []
     for i in range(num_jogadores):
         nome = text_boxes[i].get_text().strip()
@@ -354,8 +306,8 @@ def rodar_setup_ui():
             nome = f"Jogador {i + 1}" 
         
         peca = piece_selectors[i].get_selected_piece()
-        dados_finais.append((nome, peca)) # <-- Retorna (nome, peca)
+        dados_finais.append((nome, peca))
 
     pygame.key.set_repeat(0)
     pygame.quit() 
-    return dados_finais # <-- Retorna (nome, peca)
+    return dados_finais
