@@ -2,9 +2,10 @@ import pygame
 from config import Config
 
 class JogadoresUI:
-    def __init__(self, tela, jogadores):
+    def __init__(self, tela, jogadores, tabuleiro_ui):
         self.tela = tela
         self.jogadores = jogadores
+        self.tabuleiro_ui = tabuleiro_ui
 
     def desenhar_jogadores(self):
         for i, jogador in enumerate(self.jogadores):

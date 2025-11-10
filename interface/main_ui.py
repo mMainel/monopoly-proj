@@ -5,29 +5,37 @@ from interface.jogadores_ui import JogadoresUI
 from interface.botao_dado_ui import BotaoDadoUI
 from interface.evento_ui import EventoUI, DialogoCompraUI
 from turno import executar_turno_com_ui
+from interface.dado_ui import DadoUI
 
 def main_ui(jogo):
     pygame.init()
 
     tabuleiro = TabuleiroUI(jogo)
     painel = PainelJogadoresUI(tabuleiro.tela, jogo.jogadores)
-    jogadores_ui = JogadoresUI(tabuleiro.tela, jogo.jogadores)
+    jogadores_ui = JogadoresUI(tabuleiro.tela, jogo.jogadores, tabuleiro)
     botao_dado = BotaoDadoUI(tabuleiro.tela, jogo)
     evento_ui = EventoUI(tabuleiro.tela)
     dialogo_compra = DialogoCompraUI(tabuleiro.tela)
+    dado_ui = DadoUI(tabuleiro.tela)
     
     from modules.observador import Observador
     from modules.eventoJogo import TipoEvento
     
     class ObservadorUI(Observador):
-        def __init__(self, evento_ui):
+        def __init__(self, evento_ui, dado_ui):
             self.evento_ui = evento_ui
+            self.dado_ui = dado_ui
         
         def notificar(self, evento):
             tipo = evento.tipo
             dados = evento.dados
             
-            if tipo == TipoEvento.JOGADOR_MOVEU:
+            if tipo == TipoEvento.DADOS_LANCADOS:
+                dados_valores = dados.get('dados', (1, 1))
+                self.dado_ui.set_resultado(dados_valores[0], dados_valores[1])
+                self.dado_ui.mostrar()
+            
+            elif tipo == TipoEvento.JOGADOR_MOVEU:
                 jogador = dados.get('jogador')
                 casas = dados.get('casas', 0)
                 if jogador and casas:
@@ -101,7 +109,7 @@ def main_ui(jogo):
                 if jogador:
                     self.evento_ui.adicionar_evento(f"{jogador.getNome()} FALIU!")
     
-    observador_ui = ObservadorUI(evento_ui)
+    observador_ui = ObservadorUI(evento_ui, dado_ui)
     jogo.adicionar_observador(observador_ui)
     
     evento_ui.adicionar_evento(f"🎮 Jogo iniciado! Boa sorte!")
@@ -126,7 +134,17 @@ def main_ui(jogo):
                 
                 jogador_atual = jogo.jogadorAtual
                 
-                executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, evento_ui)
+                elementos_ui = {
+                    "tabuleiro": tabuleiro,
+                    "jogadores_ui": jogadores_ui,
+                    "painel": painel,
+                    "evento_ui": evento_ui,
+                    "botao_dado": botao_dado,
+                    "dado_ui": dado_ui
+                }
+                executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, elementos_ui)
+                
+                #executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, evento_ui)
                 
                 vencedor = jogo.verificar_vencedor()
                 if vencedor:
@@ -149,6 +167,7 @@ def main_ui(jogo):
         painel.desenhar()
         evento_ui.desenhar()
         botao_dado.desenhar()
+        dado_ui.desenhar()
         dialogo_compra.desenhar()
         pygame.display.flip()
         tabuleiro.relogio.tick(60)
