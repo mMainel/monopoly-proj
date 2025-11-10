@@ -12,7 +12,6 @@ class TabuleiroUI:
     def desenhar_tabuleiro(self):
         self.tela.fill(Config.BRANCO)
 
-        # Tabuleiro alinhado à esquerda
         tab_rect = pygame.Rect(
             Config.POS_X_INICIO,
             Config.POS_Y_INICIO,
@@ -22,7 +21,6 @@ class TabuleiroUI:
         pygame.draw.rect(self.tela, Config.CINZA_CLARO, tab_rect)
         pygame.draw.rect(self.tela, Config.PRETO, tab_rect, 3)
 
-        # Miolo central
         miolo_tam = Config.TAMANHO_TABULEIRO - 2 * Config.TAMANHO_CASA_CANTO
         miolo_x = Config.POS_X_INICIO + Config.TAMANHO_CASA_CANTO
         miolo_y = Config.POS_Y_INICIO + Config.TAMANHO_CASA_CANTO
@@ -30,7 +28,6 @@ class TabuleiroUI:
         pygame.draw.rect(self.tela, Config.BRANCO, miolo_rect)
         pygame.draw.rect(self.tela, Config.PRETO, miolo_rect, 1)
 
-        # Casas de canto
         cantos = [
             (Config.POS_X_INICIO, Config.POS_Y_INICIO),
             (Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO - Config.TAMANHO_CASA_CANTO, Config.POS_Y_INICIO),
@@ -43,7 +40,6 @@ class TabuleiroUI:
             pygame.draw.rect(self.tela, Config.VERMELHO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
 
-        # Casas superiores
         for i in range(1, 10):
             x = Config.POS_X_INICIO + Config.TAMANHO_CASA_CANTO + (i - 1) * Config.TAMANHO_CASA_PEQUENA
             y = Config.POS_Y_INICIO
@@ -51,7 +47,6 @@ class TabuleiroUI:
             pygame.draw.rect(self.tela, Config.CINZA_CLARO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
 
-        # Casas esquerdas
         for i in range(1, 10):
             x = Config.POS_X_INICIO
             y = Config.POS_Y_INICIO + Config.TAMANHO_CASA_CANTO + (i - 1) * Config.TAMANHO_CASA_PEQUENA
@@ -59,7 +54,6 @@ class TabuleiroUI:
             pygame.draw.rect(self.tela, Config.CINZA_CLARO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
 
-        # Casas inferiores
         for i in range(1, 10):
             x = Config.POS_X_INICIO + Config.TAMANHO_CASA_CANTO + (i - 1) * Config.TAMANHO_CASA_PEQUENA
             y = Config.POS_Y_INICIO + Config.TAMANHO_TABULEIRO - Config.TAMANHO_CASA_CANTO
@@ -67,11 +61,9 @@ class TabuleiroUI:
             pygame.draw.rect(self.tela, Config.CINZA_CLARO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
 
-        # Casas direitas
         for i in range(1, 10):
             x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO - Config.TAMANHO_CASA_CANTO
             y = Config.POS_Y_INICIO + Config.TAMANHO_CASA_CANTO + (9 - i) * Config.TAMANHO_CASA_PEQUENA
             rect = pygame.Rect(x, y, Config.TAMANHO_CASA_CANTO, Config.TAMANHO_CASA_PEQUENA)
             pygame.draw.rect(self.tela, Config.CINZA_CLARO, rect)
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
-
