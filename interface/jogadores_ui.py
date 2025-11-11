@@ -56,7 +56,7 @@ class JogadoresUI:
             pos_y = Config.POS_Y_INICIO + ajuste_canto
 
         elif 11 <= numero_casa <= 19:
-            pos_x = x_inicial + Config.TAMANHO_CASA_CANTO + (numero_casa - 10) * deslocamento + ajuste_pequeno
+            pos_x = x_inicial + Config.TAMANHO_CASA_CANTO + (numero_casa - 11) * deslocamento + ajuste_pequeno
             pos_y = Config.POS_Y_INICIO + ajuste_canto
 
         elif numero_casa == 20:
@@ -65,7 +65,7 @@ class JogadoresUI:
 
         elif 21 <= numero_casa <= 29:
             pos_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO - ajuste_canto
-            pos_y = Config.POS_Y_INICIO + Config.TAMANHO_CASA_CANTO + (numero_casa - 20) * deslocamento + ajuste_pequeno
+            pos_y = Config.POS_Y_INICIO + Config.TAMANHO_CASA_CANTO + (numero_casa - 21) * deslocamento + ajuste_pequeno
 
         elif numero_casa == 30:
             pos_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO - ajuste_canto

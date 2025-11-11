@@ -72,6 +72,34 @@ class ObservadorConsole(Observador):
             metodo = dados.get('metodo', 'desconhecido')
             print(f"{jogador.getNome()} saiu da cadeia! Método: {metodo}")
 
+        # ====== EVENTOS DE CARTAS ======
+        elif tipo == TipoEvento.CARTA_SORTE_PEGA:
+            jogador = dados.get('jogador')
+            descricao = dados.get('descricao', 'Carta Sorte')
+            print(f"[CARTA SORTE] {jogador.getNome()} pegou: {descricao}")
+
+        elif tipo == TipoEvento.CARTA_COFRE_PEGA:
+            jogador = dados.get('jogador')
+            descricao = dados.get('descricao', 'Carta Cofre')
+            print(f"[CARTA COFRE] {jogador.getNome()} pegou: {descricao}")
+
+        elif tipo == TipoEvento.JOGADOR_RECEBEU_DINHEIRO:
+            jogador = dados.get('jogador')
+            valor = dados.get('valor', 0)
+            motivo = dados.get('motivo', 'Evento de carta')
+            print(f"{jogador.getNome()} recebeu R$ {valor} ({motivo})")
+
+        elif tipo == TipoEvento.JOGADOR_PAGOU_TAXA:
+            jogador = dados.get('jogador')
+            valor = dados.get('valor', 0)
+            motivo = dados.get('motivo', 'Evento de carta')
+            print(f"{jogador.getNome()} pagou R$ {valor} ({motivo})")
+
+        elif tipo == TipoEvento.JOGADOR_RECEBEU_CARTA_SAIR_CADEIA:
+            jogador = dados.get('jogador')
+            tipo_carta = dados.get('tipo_carta', 'desconhecido')
+            print(f"{jogador.getNome()} recebeu uma carta 'Sair da Cadeia' do baralho {tipo_carta}")
+
         elif tipo == TipoEvento.JOGADOR_FALIU:
             jogador = dados.get('jogador')
             if jogador:

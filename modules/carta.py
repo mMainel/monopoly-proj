@@ -18,12 +18,13 @@ class Carta(ABC):
         self.descricao = descricao
 
     @abstractmethod
-    def executar(self, jogador) -> None:
+    def executar(self, jogador, jogo=None) -> None:
         """
         Executa a ação da carta sobre o jogador
 
         espera:
             jogador: Jogador - jogador que sorteou a carta
+            jogo: Jogo - instância do jogo (opcional, para publicar eventos)
         retorna:
             None
         """
@@ -49,12 +50,13 @@ class CartaSorte(Carta):
         super().__init__(descricao)
         self.acao_callback = acao_callback
 
-    def executar(self, jogador) -> None:
+    def executar(self, jogador, jogo=None) -> None:
         """
         Executa a ação de sorte para o jogador
 
         espera:
             jogador: Jogador - jogador que sorteou a carta
+            jogo: Jogo - instância do jogo (para publicar eventos)
         retorna:
             None
         """
@@ -70,12 +72,13 @@ class CartaCofre(Carta):
         super().__init__(descricao)
         self.acao_callback = acao_callback
 
-    def executar(self, jogador) -> None:
+    def executar(self, jogador, jogo=None) -> None:
         """
         Executa a ação de cofre para o jogador
 
         espera:
             jogador: Jogador - jogador que sorteou a carta
+            jogo: Jogo - instância do jogo (para publicar eventos)
         retorna:
             None
         """
@@ -92,16 +95,26 @@ class CartaSairCadeia(Carta):
         super().__init__(descricao)
         self.tipo = tipo
 
-    def executar(self, jogador) -> None:
+    def executar(self, jogador, jogo=None) -> None:
         """
         Adiciona a carta ao inventário do jogador
 
         espera:
             jogador: Jogador - jogador que sorteou a carta
+            jogo: Jogo - instância do jogo (para publicar eventos)
         retorna:
             None
         """
         jogador.adicionarCartaSairCadeia()
+        
+        # Publicar evento se jogo foi fornecido
+        if jogo and hasattr(jogo, '_publicar_evento'):
+            from modules.eventoJogo import TipoEvento
+            tipo_carta = 'sorte' if self.tipo == TipoCarta.SORTE else 'cofre'
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_CARTA_SAIR_CADEIA, {
+                'jogador': jogador,
+                'tipo_carta': tipo_carta
+            })
 
     def getTipo(self) -> TipoCarta:
         """
@@ -113,3 +126,12 @@ class CartaSairCadeia(Carta):
             TipoCarta - tipo da carta
         """
         return self.tipo
+    
+    def ehCartaSairCadeia(self) -> bool:
+        """
+        Verifica se é uma carta "Sair da Cadeia"
+        
+        retorna:
+            bool - True para esta carta especial
+        """
+        return True

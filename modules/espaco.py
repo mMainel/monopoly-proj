@@ -198,6 +198,7 @@ class EspacoImposto(Espaco):
 class EspacoCarta(Espaco):
     """
     Espaço de carta Sorte ou Cofre
+    ATUALIZADO: Agora publica eventos quando cartas são pegas
     """
 
     def __init__(self, nome: str, posicao: int, tipo_carta: str):
@@ -207,6 +208,7 @@ class EspacoCarta(Espaco):
     def acao(self, jogador, jogo) -> None:
         """
         Sorteia e executa uma carta do baralho correspondente
+        ATUALIZADO: Publica eventos para a UI
 
         espera:
             jogador: Jogador - jogador
@@ -219,8 +221,64 @@ class EspacoCarta(Espaco):
             if baralho and not baralho.estaVazio():
                 carta = baralho.sacarCarta()
                 if carta:
-                    carta.executar(jogador)
-                    baralho.retornarCarta(carta)
+                    # ===== PUBLICAR EVENTO: Carta foi pega =====
+                    if hasattr(jogo, '_publicar_evento'):
+                        from modules.eventoJogo import TipoEvento
+                        
+                        # Determinar tipo de evento baseado no tipo de carta
+                        if self.tipo_carta.lower() in ['sorte', 'sorte ou revés', 'chance']:
+                            tipo_evento = TipoEvento.CARTA_SORTE_PEGA
+                        else:  # Cofre, Community Chest, etc
+                            tipo_evento = TipoEvento.CARTA_COFRE_PEGA
+                        
+                        # Publicar evento
+                        jogo._publicar_evento(tipo_evento, {
+                            'jogador': jogador,
+                            'descricao': carta.getDescricao() if hasattr(carta, 'getDescricao') else 'Carta',
+                            'tipo_carta': self.tipo_carta
+                        })
+                    
+                    # ===== EXECUTAR AÇÃO DA CARTA =====
+                    # Passa 'jogo' como segundo parâmetro para permitir que cartas publiquem eventos
+                    if hasattr(carta, 'executar'):
+                        # Verificar se o método aceita o parâmetro jogo
+                        import inspect
+                        sig = inspect.signature(carta.executar)
+                        if len(sig.parameters) >= 2:
+                            carta.executar(jogador, jogo)
+                        else:
+                            carta.executar(jogador)
+                    
+                    # ===== DEVOLVER CARTA AO BARALHO =====
+                    # Não devolver se for carta "Sair da Cadeia"
+                    if not self._eh_carta_sair_cadeia(carta):
+                        baralho.retornarCarta(carta)
+    
+    def _eh_carta_sair_cadeia(self, carta) -> bool:
+        """
+        Verifica se a carta é do tipo "Sair da Cadeia"
+        
+        espera:
+            carta: Carta - carta a verificar
+        retorna:
+            bool - True se for carta "Sair da Cadeia"
+        """
+        # Verifica pelo tipo da classe
+        from modules.carta import CartaSairCadeia
+        if isinstance(carta, CartaSairCadeia):
+            return True
+        
+        # Verifica pelo método (fallback)
+        if hasattr(carta, 'ehCartaSairCadeia'):
+            return carta.ehCartaSairCadeia()
+        
+        # Verifica pela descrição (último recurso)
+        if hasattr(carta, 'getDescricao'):
+            descricao = carta.getDescricao().lower()
+            if 'sair da cadeia' in descricao or 'saiu da cadeia' in descricao:
+                return True
+        
+        return False
 
     def getTipoCarta(self) -> str:
         """

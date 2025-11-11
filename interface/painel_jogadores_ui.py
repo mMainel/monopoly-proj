@@ -54,7 +54,7 @@ class PainelJogadoresUI:
 
     def desenhar(self):
         self.update_layout()
-        
+
         painel_rect = pygame.Rect(self.x, self.y, self.largura, self.altura)
         pygame.draw.rect(self.tela, Config.CINZA_CLARO, painel_rect)
         pygame.draw.rect(self.tela, Config.PRETO, painel_rect, 2)
@@ -78,7 +78,12 @@ class PainelJogadoresUI:
 
         espaco_por_jogador = max(60, coluna_altura // jogadores_por_coluna)
 
-        # Desenhar cada jogador
+        # Guardar retângulos para hover
+        self._cards_rects = []
+
+        mouse_pos = pygame.mouse.get_pos()
+        hover_jogador = None
+
         for i, jogador in enumerate(self.jogadores):
             col = 0 if (not duas_colunas or i < jogadores_por_coluna) else 1
             linha = i if col == 0 else i - jogadores_por_coluna
@@ -91,7 +96,17 @@ class PainelJogadoresUI:
             else:
                 altura_bloco = espaco_por_jogador - 6
 
+            card_rect = pygame.Rect(base_x, base_y, coluna_largura, altura_bloco)
+            self._cards_rects.append((card_rect, jogador))
+
+            if card_rect.collidepoint(mouse_pos):
+                hover_jogador = jogador
+
             self.desenhar_jogador(jogador, base_x, base_y, coluna_largura, altura_bloco)
+
+        # Desenhar tooltip se estiver sobre um jogador
+        if hover_jogador:
+            self._desenhar_tooltip_propriedades(hover_jogador, mouse_pos)
 
     def desenhar_jogador(self, jogador, x, y, largura, altura):
         padding = 8
@@ -150,51 +165,42 @@ class PainelJogadoresUI:
             cadeia_render = self.fonte_info.render(cadeia_texto, True, (180, 40, 40))
             self.tela.blit(cadeia_render, (x + largura - padding - cadeia_render.get_width(), y + padding))
 
+        # Removido bloco de propriedades inline; agora exibido via tooltip no hover.
+
+    def _desenhar_tooltip_propriedades(self, jogador, mouse_pos):
         propriedades = jogador.getPropriedades()
-        num_props = len(propriedades)
-        
-        props_header = f"Propriedades ({num_props}):"
-        props_header_render = self.fonte_info.render(props_header, True, Config.PRETO)
-        y_props = y + altura - padding - 50
-        self.tela.blit(props_header_render, (x + padding, y_props))
-        
-        if num_props > 0:
-            y_offset = y_props + 15
-            max_mostrar = min(3, num_props)
-            
-            for i in range(max_mostrar):
-                prop = propriedades[i]
-                nome_prop = prop.getNome() if hasattr(prop, 'getNome') else 'Prop'
-                
-                if len(nome_prop) > 12:
-                    nome_prop = nome_prop[:10] + "..."
-                
-                cor_texto = Config.PRETO
-                if hasattr(prop, 'getCor'):
-                    try:
-                        cor_nome = prop.getCor()
-                        cores_mapa = {
-                            "Marrom": (139, 69, 19),
-                            "Azul Claro": (135, 206, 250),
-                            "Rosa": (255, 20, 147),
-                            "Laranja": (255, 140, 0),
-                            "Vermelho": (220, 20, 60),
-                            "Amarelo": (255, 215, 0),
-                            "Verde": (0, 128, 0),
-                            "Azul Escuro": (0, 0, 139)
-                        }
-                        cor_texto = cores_mapa.get(cor_nome, Config.PRETO)
-                    except:
-                        pass
-                
-                raio_prop = 3
-                pygame.draw.circle(self.tela, cor_texto, 
-                                 (x + padding + raio_prop, y_offset + 5), raio_prop)
-                
-                texto_prop = self.fonte_propriedades.render(nome_prop, True, Config.PRETO)
-                self.tela.blit(texto_prop, (x + padding + raio_prop * 2 + 3, y_offset))
-                y_offset += 12
-            
-            if num_props > 3:
-                mais_texto = self.fonte_propriedades.render(f"... e mais {num_props - 3}", True, Config.PRETO)
-                self.tela.blit(mais_texto, (x + padding, y_offset))
+        if not propriedades:
+            return
+
+        # Preparar linhas
+        linhas = [f"{jogador.getNome()} - Propriedades:"]
+        for prop in propriedades:
+            nome = prop.getNome() if hasattr(prop, 'getNome') else 'Prop'
+            linhas.append(f"- {nome}")
+
+        padding = 8
+        espacamento = 4
+        fonte = self.fonte_propriedades
+
+        # Calcular largura/altura
+        larguras = [fonte.render(l, True, Config.PRETO).get_width() for l in linhas]
+        alturas = [fonte.render(l, True, Config.PRETO).get_height() for l in linhas]
+        largura_tooltip = max(larguras) + padding * 2
+        altura_tooltip = sum(alturas) + padding * 2 + espacamento * (len(linhas) - 1)
+
+        x, y = mouse_pos
+        # Ajustar para não sair da tela
+        if x + largura_tooltip > self.tela.get_width():
+            x = x - largura_tooltip - 10
+        if y + altura_tooltip > self.tela.get_height():
+            y = y - altura_tooltip - 10
+
+        rect = pygame.Rect(x, y, largura_tooltip, altura_tooltip)
+        pygame.draw.rect(self.tela, (250, 250, 250), rect)
+        pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
+
+        cursor_y = y + padding
+        for linha in linhas:
+            render = fonte.render(linha, True, Config.PRETO)
+            self.tela.blit(render, (x + padding, cursor_y))
+            cursor_y += render.get_height() + espacamento
