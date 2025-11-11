@@ -316,5 +316,21 @@ class Banco:
         retorna:
             List[Transacao] - transações do tipo
         """
-        return [t for t in self.historico_transacoes 
+        return [t for t in self.historico_transacoes
                 if t.getTipo() == tipo]
+
+    # SERIALIZAÇÃO
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado do banco para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado do banco
+        """
+        return {
+            'casas_disponiveis': self.casas_disponiveis,
+            'hoteis_disponiveis': self.hoteis_disponiveis
+        }

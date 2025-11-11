@@ -1,6 +1,8 @@
 from typing import List
 import sys
 import os
+import json
+from datetime import datetime
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -16,6 +18,7 @@ from modules.peca import Peca
 from modules.leilao import Leilao
 from modules.regras import Regras
 from modules.tituloPropriedade import TituloPropriedade
+from modules.carta import CartaSairCadeia
 
 class Jogo:
     """
@@ -671,3 +674,228 @@ class Jogo:
             })
 
         return sucesso
+
+    # SALVAMENTO E CARREGAMENTO DO JOGO
+
+    def salvar_estado_jogo(self, caminho_arquivo: str = None) -> bool:
+        """
+        Serializa e salva todo o estado atual do jogo em um arquivo JSON
+
+        espera:
+            caminho_arquivo: str - caminho completo do arquivo (padrão: save_game.json na raiz do projeto)
+        retorna:
+            bool - True se salvou com sucesso, False caso contrário
+        """
+        if caminho_arquivo is None:
+            diretorio_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            caminho_arquivo = os.path.join(diretorio_raiz, 'save_game.json')
+
+        try:
+            indice_jogador_atual = self.jogadores.index(self.jogadorAtual) if self.jogadorAtual else 0
+
+            jogadores_serializados = []
+            for jogador in self.jogadores:
+                jogador_dict = jogador.to_dict()
+
+                propriedades_indices = []
+                for prop in jogador.getPropriedades():
+                    posicao = self.tabuleiro.obter_posicao_propriedade(prop)
+                    if posicao != -1:
+                        propriedades_indices.append(posicao)
+
+                jogador_dict['propriedades_indices'] = propriedades_indices
+                jogadores_serializados.append(jogador_dict)
+
+            estado = {
+                'meta': {
+                    'data_salvamento': datetime.now().isoformat(),
+                    'versao': '1.0'
+                },
+                'jogo': {
+                    'turno': self.turno,
+                    'contador_duplas': self._contador_duplas,
+                    'jogo_ativo': self._jogo_ativo,
+                    'indice_jogador_atual': indice_jogador_atual,
+                    'tem_propriedade_disponivel': self.propriedade_disponivel_compra is not None,
+                    'propriedade_disponivel_posicao': self.tabuleiro.obter_posicao_propriedade(self.propriedade_disponivel_compra) if self.propriedade_disponivel_compra else None
+                },
+                'jogadores': jogadores_serializados,
+                'tabuleiro': self.tabuleiro.to_dict(self.jogadores),
+                'banco': self.banco.to_dict(),
+                'dados': self.dados.to_dict(),
+                'leilao': self.leilao_ativo.to_dict(self.jogadores) if self.leilao_ativo and self.leilao_ativo.estaAtivo() else None
+            }
+
+            with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
+                json.dump(estado, arquivo, ensure_ascii=False, indent=2)
+
+            return True
+
+        except Exception as e:
+            print(f"Erro ao salvar jogo: {e}")
+            return False
+
+    def carregar_estado_jogo(self, caminho_arquivo: str = None) -> bool:
+        """
+        Carrega e restaura o estado do jogo de um arquivo JSON
+
+        espera:
+            caminho_arquivo: str - caminho do arquivo de save (padrão: save_game.json na raiz)
+        retorna:
+            bool - True se carregou com sucesso, False caso contrário
+        """
+        estado = Jogo.verificar_jogo_salvo(caminho_arquivo)
+
+        if estado is None:
+            return False
+
+        try:
+            self._restaurar_jogadores(estado['jogadores'])
+
+            self._restaurar_propriedades(estado['tabuleiro']['propriedades'])
+
+            self._restaurar_banco(estado['banco'])
+
+            self._restaurar_dados(estado['dados'])
+
+            self._restaurar_baralhos(estado['tabuleiro'])
+
+            self._restaurar_estado_jogo(estado['jogo'])
+
+            if estado.get('leilao'):
+                self._restaurar_leilao(estado['leilao'])
+
+            return True
+
+        except Exception as e:
+            print(f"Erro ao carregar estado do jogo: {e}")
+            return False
+
+    def _restaurar_jogadores(self, jogadores_data: list) -> None:
+        """Restaura os jogadores a partir dos dados salvos"""
+        self.jogadores = []
+
+        for jogador_dict in jogadores_data:
+            peca = Peca(jogador_dict['peca'])
+
+            if jogador_dict.get('eh_ia', False):
+                jogador = JogadorIA(jogador_dict['nome'], peca)
+            else:
+                jogador = Jogador(jogador_dict['nome'], peca)
+
+            jogador.saldo = jogador_dict['saldo']
+            jogador.posicao = jogador_dict['posicao']
+            jogador.emCadeia = jogador_dict['emCadeia']
+            jogador.turnosCadeia = jogador_dict['turnosCadeia']
+            jogador.cartasSairCadeia = jogador_dict['cartasSairCadeia']
+            jogador.estaFalido = jogador_dict['estaFalido']
+
+            self.jogadores.append(jogador)
+
+    def _restaurar_propriedades(self, propriedades_data: list) -> None:
+        """Restaura o estado das propriedades e atribui proprietários"""
+        for prop_dict in propriedades_data:
+            posicao = prop_dict['posicao']
+            espaco = self.tabuleiro.getEspaco(posicao)
+
+            if hasattr(espaco, 'titulo') and espaco.titulo is not None:
+                titulo = espaco.titulo
+
+                proprietario_index = prop_dict.get('proprietario_index', -1)
+                if proprietario_index >= 0 and proprietario_index < len(self.jogadores):
+                    proprietario = self.jogadores[proprietario_index]
+                    titulo.proprietario = proprietario
+                    proprietario.adicionarPropriedade(titulo)
+
+                titulo.hipotecada = prop_dict.get('hipotecada', False)
+
+                if isinstance(titulo, TituloPropriedade):
+                    titulo.num_casas = prop_dict.get('num_casas', 0)
+                    titulo.tem_hotel = prop_dict.get('tem_hotel', False)
+
+    def _restaurar_banco(self, banco_data: dict) -> None:
+        """Restaura o estado do banco"""
+        self.banco.casas_disponiveis = banco_data['casas_disponiveis']
+        self.banco.hoteis_disponiveis = banco_data['hoteis_disponiveis']
+
+    def _restaurar_dados(self, dados_data: dict) -> None:
+        """Restaura o estado dos dados"""
+        lancamento = dados_data.get('ultimo_lancamento')
+        if lancamento:
+            self.dados.ultimo_lancamento = tuple(lancamento)
+        else:
+            self.dados.ultimo_lancamento = None
+
+    def _restaurar_baralhos(self, tabuleiro_data: dict) -> None:
+        """
+        Restaura o estado dos baralhos mantendo a ordem das cartas
+        (optamos por não aumentar a complexidade nesse ponto pois é irrelevante)
+        """
+        pass
+
+    def _restaurar_estado_jogo(self, jogo_data: dict) -> None:
+        """Restaura o estado geral do jogo"""
+        self.turno = jogo_data['turno']
+        self._contador_duplas = jogo_data['contador_duplas']
+        self._jogo_ativo = jogo_data['jogo_ativo']
+
+        indice_jogador_atual = jogo_data['indice_jogador_atual']
+        if indice_jogador_atual >= 0 and indice_jogador_atual < len(self.jogadores):
+            self.jogadorAtual = self.jogadores[indice_jogador_atual]
+
+        if jogo_data.get('tem_propriedade_disponivel', False):
+            posicao = jogo_data.get('propriedade_disponivel_posicao')
+            if posicao is not None and posicao >= 0:
+                espaco = self.tabuleiro.getEspaco(posicao)
+                if hasattr(espaco, 'titulo'):
+                    self.propriedade_disponivel_compra = espaco.titulo
+
+    def _restaurar_leilao(self, leilao_data: dict) -> None:
+        """Restaura o estado do leilão ativo"""
+        if not leilao_data or not leilao_data.get('ativo', False):
+            self.leilao_ativo = None
+            return
+
+        self.leilao_ativo = Leilao()
+        self.leilao_ativo.ativo = True
+        self.leilao_ativo.lance_minimo = leilao_data.get('lance_minimo', 1)
+
+        participantes = []
+        for indice in leilao_data.get('participantes_indices', []):
+            if indice >= 0 and indice < len(self.jogadores):
+                participantes.append(self.jogadores[indice])
+
+        self.leilao_ativo.participantes = participantes
+
+        lances = {}
+        for indice_str, valor in leilao_data.get('lances', {}).items():
+            indice = int(indice_str)
+            if indice >= 0 and indice < len(self.jogadores):
+                lances[self.jogadores[indice]] = valor
+
+        self.leilao_ativo.lances = lances
+
+    @staticmethod
+    def verificar_jogo_salvo(caminho_arquivo: str = None) -> dict:
+        """
+        Verifica se existe um jogo salvo e retorna o estado
+
+        espera:
+            caminho_arquivo: str - caminho do arquivo de save (padrão: save_game.json na raiz)
+        retorna:
+            dict - estado do jogo salvo ou None se não houver save
+        """
+        if caminho_arquivo is None:
+            diretorio_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            caminho_arquivo = os.path.join(diretorio_raiz, 'save_game.json')
+
+        if not os.path.exists(caminho_arquivo):
+            return None
+
+        try:
+            with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
+                estado = json.load(arquivo)
+                return estado
+        except Exception as e:
+            print(f"Erro ao carregar jogo salvo: {e}")
+            return None

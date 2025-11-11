@@ -218,3 +218,41 @@ class Leilao:
             Jogador - vencedor ou None se ainda não finalizado
         """
         return self.vencedor
+
+    # SERIALIZAÇÃO
+
+    def to_dict(self, jogadores_list: List = None) -> dict:
+        """
+        Serializa o estado do leilão para um dicionário
+
+        espera:
+            jogadores_list: List - lista de jogadores para resolver índices
+        retorna:
+            dict - estado serializado do leilão ou None se não ativo
+        """
+        if not self.ativo:
+            return None
+
+        participantes_indices = []
+        if jogadores_list:
+            for participante in self.participantes:
+                try:
+                    participantes_indices.append(jogadores_list.index(participante))
+                except ValueError:
+                    pass
+
+        lances_serializados = {}
+        if jogadores_list:
+            for jogador, valor in self.lances.items():
+                try:
+                    indice = jogadores_list.index(jogador)
+                    lances_serializados[str(indice)] = valor
+                except ValueError:
+                    pass
+
+        return {
+            'ativo': self.ativo,
+            'participantes_indices': participantes_indices,
+            'lances': lances_serializados,
+            'lance_minimo': self.lance_minimo
+        }

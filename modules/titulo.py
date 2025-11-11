@@ -160,3 +160,21 @@ class Titulo(ABC):
             bool - True se disponível, False se possui dono
         """
         return self.proprietario is None
+
+    # SERIALIZAÇÃO
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado básico do título para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado do título
+        """
+        return {
+            'nome': self.nome,
+            'preco': self.preco,
+            'hipotecada': self.hipotecada,
+            'tipo': type(self).__name__
+        }

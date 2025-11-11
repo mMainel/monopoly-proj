@@ -50,3 +50,18 @@ class Dados:
             raise ValueError("Nenhum lançamento foi realizado")
         return self.ultimo_lancamento[0] + self.ultimo_lancamento[1]
 
+    # SERIALIZAÇÃO
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado dos dados para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado dos dados
+        """
+        return {
+            'ultimo_lancamento': list(self.ultimo_lancamento) if self.ultimo_lancamento else None
+        }
+

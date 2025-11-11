@@ -1,6 +1,6 @@
 import random
 from typing import List
-from modules.carta import Carta, TipoCarta
+from modules.carta import Carta, TipoCarta, CartaSairCadeia
 
 class BaralhoCartas:
     """
@@ -94,3 +94,28 @@ class BaralhoCartas:
             bool - True se vazio, False caso contrário
         """
         return len(self.cartas) == 0
+
+    # SERIALIZAÇÃO
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado do baralho para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado do baralho
+        """
+
+        cartas_ordem = []
+        for i, carta in enumerate(self.cartas):
+            if isinstance(carta, CartaSairCadeia):
+                cartas_ordem.append(-1)
+            else:
+                cartas_ordem.append(i)
+
+        return {
+            'tipo': self.tipo.value,
+            'cartas_ordem': cartas_ordem,
+            'num_cartas': len(self.cartas)
+        }

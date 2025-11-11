@@ -132,3 +132,16 @@ class JogadorIA(Jogador):
             bool - True se deve vender
         """
         return self.saldo < 50
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado do jogador IA para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado do jogador IA
+        """
+        estado = super().to_dict()
+        estado['eh_ia'] = True
+        return estado

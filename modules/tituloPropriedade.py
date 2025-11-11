@@ -274,3 +274,22 @@ class TituloPropriedade(Titulo):
                 return False
 
         return True
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado da propriedade para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado da propriedade
+        """
+        estado = super().to_dict()
+        estado.update({
+            'cor': self.cor,
+            'aluguel_base': self.aluguel_base,
+            'custo_casa': self.custo_casa,
+            'num_casas': self.num_casas,
+            'tem_hotel': self.tem_hotel
+        })
+        return estado

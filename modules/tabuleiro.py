@@ -252,3 +252,57 @@ class Tabuleiro:
 
         self.baralho_sorte.embaralhar()
         self.baralho_cofre.embaralhar()
+
+    def obter_posicao_propriedade(self, propriedade) -> int:
+        """
+        Encontra a posição de uma propriedade no tabuleiro
+
+        espera:
+            propriedade: Titulo - propriedade a buscar
+        retorna:
+            int - posição no tabuleiro (0-39) ou -1 se não encontrada
+        """
+        if propriedade is None:
+            return -1
+
+        for posicao, espaco in enumerate(self.espacos):
+            if hasattr(espaco, 'titulo') and espaco.titulo == propriedade:
+                return posicao
+
+        return -1
+
+    # SERIALIZAÇÃO
+
+    def to_dict(self, jogadores_list: List = None) -> dict:
+        """
+        Serializa o estado do tabuleiro para um dicionário
+
+        espera:
+            jogadores_list: List - lista de jogadores para resolver índices de proprietários
+        retorna:
+            dict - estado serializado do tabuleiro
+        """
+        propriedades_serializadas = []
+
+        for posicao, espaco in enumerate(self.espacos):
+            if hasattr(espaco, 'titulo') and espaco.titulo is not None:
+                titulo = espaco.titulo
+
+                proprietario_index = -1
+                if hasattr(titulo, 'proprietario') and titulo.proprietario is not None and jogadores_list:
+                    try:
+                        proprietario_index = jogadores_list.index(titulo.proprietario)
+                    except ValueError:
+                        proprietario_index = -1
+
+                prop_dict = titulo.to_dict()
+                prop_dict['posicao'] = posicao
+                prop_dict['proprietario_index'] = proprietario_index
+
+                propriedades_serializadas.append(prop_dict)
+
+        return {
+            'propriedades': propriedades_serializadas,
+            'baralho_sorte': self.baralho_sorte.to_dict() if self.baralho_sorte else None,
+            'baralho_cofre': self.baralho_cofre.to_dict() if self.baralho_cofre else None
+        }

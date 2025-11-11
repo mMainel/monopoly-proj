@@ -600,3 +600,25 @@ class Jogador:
 
             prop.transferirPropriedade(None)
             self.removerPropriedade(prop)
+
+    # SERIALIZAÇÃO
+
+    def to_dict(self) -> dict:
+        """
+        Serializa o estado do jogador para um dicionário
+
+        espera:
+            nenhum parâmetro
+        retorna:
+            dict - estado serializado do jogador
+        """
+        return {
+            'nome': self.nome,
+            'peca': self.peca.value,
+            'saldo': self.saldo,
+            'posicao': self.posicao,
+            'emCadeia': self.emCadeia,
+            'turnosCadeia': self.turnosCadeia,
+            'cartasSairCadeia': self.cartasSairCadeia,
+            'estaFalido': self.estaFalido
+        }
