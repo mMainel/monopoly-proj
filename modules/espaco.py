@@ -197,7 +197,7 @@ class EspacoImposto(Espaco):
 
 class EspacoCarta(Espaco):
     """
-    Espaço de carta Sorte ou Revés
+    Espaço de carta Sorte ou Cofre
     """
 
     def __init__(self, nome: str, posicao: int, tipo_carta: str):
@@ -229,6 +229,6 @@ class EspacoCarta(Espaco):
         espera:
             nenhum parâmetro
         retorna:
-            str - tipo da carta ("Sorte" ou "Revés")
+            str - tipo da carta ("Sorte" ou "Cofre")
         """
         return self.tipo_carta

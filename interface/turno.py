@@ -50,7 +50,7 @@ def executar_turno(jogo, jogador, interface):
             jogo.tratarFalencia(jogador)
 
 
-def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui):
+def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_cadeia=None):
     tabuleiro = elementos_ui["tabuleiro"]
     jogadores_ui = elementos_ui["jogadores_ui"]
     painel = elementos_ui["painel"]
@@ -62,12 +62,32 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui):
         if isinstance(jogador, JogadorIA):
             opcao = jogador.escolher_opcao_cadeia()
         else:
-            if jogador.podeUsarCartaSairCadeia():
-                opcao = "carta"
-            elif jogador.podePagarFianca():
-                opcao = "fianca"
+            # Jogador humano - mostrar diálogo de opções
+            if dialogo_cadeia:
+                dialogo_cadeia.mostrar(jogador)
+                opcao = None
+                
+                relogio = pygame.time.Clock()
+                while dialogo_cadeia.ativo:
+                    for evento in pygame.event.get():
+                        if evento.type == pygame.QUIT:
+                            pygame.quit()
+                            return
+                        dialogo_cadeia.handle_event(evento)
+                    
+                    dialogo_cadeia.desenhar()
+                    pygame.display.flip()
+                    relogio.tick(60)
+                
+                opcao = dialogo_cadeia.obter_resposta()
             else:
-                opcao = "dupla"
+                # Fallback caso o diálogo não seja fornecido
+                if jogador.podeUsarCartaSairCadeia():
+                    opcao = "carta"
+                elif jogador.podePagarFianca():
+                    opcao = "fianca"
+                else:
+                    opcao = "dupla"
         
         saiu = jogo.processarOpcoesCadeia(jogador, opcao)
         
