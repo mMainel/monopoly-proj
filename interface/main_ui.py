@@ -10,6 +10,7 @@ from interface.dado_ui import DadoUI
 from modules.observador import Observador
 from modules.eventoJogo import TipoEvento
 from interface.negociacao_ui import DialogoEscolherJogadorUI, DialogoNegociacaoUI, DialogoConfirmacaoUI
+from interface.leilao_ui import DialogoLeilaoUI
 
 
 class ObservadorUI(Observador):
@@ -205,6 +206,7 @@ def main_ui(jogo):
     dialogo_escolher = DialogoEscolherJogadorUI(tabuleiro.tela)
     dialogo_negociacao = DialogoNegociacaoUI(tabuleiro.tela)
     dialogo_confirmar = DialogoConfirmacaoUI(tabuleiro.tela)
+    dialogo_leilao = DialogoLeilaoUI(tabuleiro.tela)
     
     # ===== REGISTRAR OBSERVADOR =====
     observador_ui = ObservadorUI(evento_ui, dado_ui)
@@ -250,6 +252,7 @@ def main_ui(jogo):
                     "dialogo_escolher": dialogo_escolher,
                     "dialogo_negociacao": dialogo_negociacao,
                     "dialogo_confirmar": dialogo_confirmar,
+                    "dialogo_leilao": dialogo_leilao,
                 }
                 executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, elementos_ui, dialogo_cadeia)
                 

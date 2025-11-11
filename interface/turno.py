@@ -82,7 +82,8 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_c
     dado_ui = elementos_ui["dado_ui"]
     dialogo_escolher = elementos_ui.get("dialogo_escolher")
     dialogo_negociacao = elementos_ui.get("dialogo_negociacao")
-    dialogo_confirmar = elementos_ui.get("dialogo_confirmar")
+    # Removido dialogo_confirmar (não queremos confirmação de finalizar turno)
+    dialogo_leilao = elementos_ui.get("dialogo_leilao")
     
     # ===== 1. TRATAR CADEIA =====
     if jogador.estaEmCadeia():
@@ -118,21 +119,29 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_c
     
     if jogo.propriedade_disponivel_compra:
         propriedade = jogo.propriedade_disponivel_compra
-        
+
         if isinstance(jogador, JogadorIA):
             decisao = jogador.decidir_comprar_propriedade(propriedade)
         else:
-            decisao = _mostrar_dialogo_compra(dialogo_compra, propriedade, jogador)
-        
+            decisao = _mostrar_dialogo_compra(dialogo_compra, propriedade, jogador,
+                                              tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
+
         if decisao:
             jogo.tratarCompraPropriedade(jogador, propriedade)
         else:
+            # Iniciar fluxo de leilão começando do próximo jogador
             try:
-                leilao = jogo.iniciarLeilao(propriedade)
-                leilao.finalizarLeilao()
+                if dialogo_leilao:
+                    _executar_leilao_ui(jogo, jogador, propriedade, dialogo_leilao,
+                                         tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
+                else:
+                    # Fallback automático (sem UI): finalizar imediatamente sem lances
+                    leilao = jogo.iniciarLeilao(propriedade)
+                    vencedor, valor = leilao.finalizarLeilao()
+                    jogo.notificarLeilaoFinalizado(vencedor, valor)
             except Exception as e:
                 print(f"Erro ao processar leilão: {e}")
-        
+
         jogo.propriedade_disponivel_compra = None
     
     # ===== 4. OFERECER CONSTRUÇÃO =====
@@ -154,18 +163,13 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_c
         if hasattr(jogo, 'tratarFalencia'):
             jogo.tratarFalencia(jogador)
     
-    # ===== 6. NEGOCIAÇÃO E FINALIZAÇÃO =====
+    # ===== 6. NEGOCIAÇÃO (sem diálogo de finalizar) =====
     try:
-        # Perguntar se deseja negociar
+        # Perguntar se deseja negociar (opcional)
         if dialogo_escolher and dialogo_negociacao:
             _fluxo_negociacao(jogo, jogador, dialogo_escolher, dialogo_negociacao, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
-
-        # Perguntar se deseja finalizar rodada
-        if dialogo_confirmar:
-            _esperar_confirmacao(dialogo_confirmar, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui,
-                                 titulo="Finalizar rodada?", mensagem="Deseja encerrar sua rodada agora?")
     except Exception as e:
-        print(f"Erro no fluxo de negociação/finalização: {e}")
+        print(f"Erro no fluxo de negociação: {e}")
 
 
 # ===== FUNÇÕES AUXILIARES =====
@@ -199,22 +203,11 @@ def _escolher_opcao_cadeia_fallback(jogador):
         return "dupla"
 
 
-def _mostrar_dialogo_compra(dialogo_compra, propriedade, jogador):
-    """Mostra diálogo de compra e retorna a decisão"""
+def _mostrar_dialogo_compra(dialogo_compra, propriedade, jogador,
+                            tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui):
+    """Mostra diálogo de compra (modal) e retorna a decisão"""
     dialogo_compra.mostrar(propriedade, jogador)
-    
-    relogio = pygame.time.Clock()
-    while dialogo_compra.ativo:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                return False
-            dialogo_compra.handle_event(evento)
-        
-        dialogo_compra.desenhar()
-        pygame.display.flip()
-        relogio.tick(60)
-    
+    _loop_modal(dialogo_compra, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
     return dialogo_compra.obter_resposta()
 
 
@@ -256,6 +249,46 @@ def _desenhar_frame(tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado
     dado_ui.desenhar()
     if dialogo:
         dialogo.desenhar()
+
+def _executar_leilao_ui(jogo, jogador_inicial, propriedade, dialogo_leilao,
+                        tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui):
+    """Executa o fluxo de leilão via diálogo Pygame começando do próximo jogador."""
+    # Criar leilão no jogo
+    leilao = jogo.iniciarLeilao(propriedade)
+    jogadores = jogo.jogadores
+    indice_inicial = (jogadores.index(jogador_inicial) + 1) % len(jogadores)
+
+    dialogo_leilao.iniciar(leilao, jogadores, indice_inicial)
+
+    relogio = pygame.time.Clock()
+    inicio_finalizado = None
+
+    while dialogo_leilao.ativo:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                return
+            dialogo_leilao.handle_event(evento)
+
+        _desenhar_frame(tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui, dialogo_leilao)
+        pygame.display.flip()
+        relogio.tick(60)
+
+        # Se finalizado, aguarda breve intervalo para visualização e encerra
+        if dialogo_leilao.finalizado:
+            if inicio_finalizado is None:
+                inicio_finalizado = pygame.time.get_ticks()
+            elif pygame.time.get_ticks() - inicio_finalizado > 1800:
+                dialogo_leilao.ativo = False
+
+    # Publicar resultado
+    resultado = dialogo_leilao.obter_resultado()
+    if resultado:
+        vencedor, valor = resultado
+        jogo.notificarLeilaoFinalizado(vencedor, valor)
+    else:
+        # Nenhum lance realizado
+        jogo.notificarLeilaoFinalizado(None, 0)
     pygame.display.flip()
     tabuleiro.relogio.tick(60)
 
@@ -269,6 +302,7 @@ def _loop_modal(dialogo, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado,
                 return
             dialogo.handle_event(evento)
         _desenhar_frame(tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui, dialogo)
+        pygame.display.flip()
         relogio.tick(60)
 
 

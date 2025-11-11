@@ -107,12 +107,12 @@ def criar_cartas_sorte(jogo) -> list:
     cartas.append(carta10)
 
     # ===== CARTAS DE MOVIMENTO =====
-    def ir_posicao_24(jogador):
-        jogador.irPara(24)
+    def ir_posicao_21(jogador):
+        jogador.irPara(21)
 
     carta4 = CartaSorte(
         "Você foi convidado para uma palestra na Economia. Avance até lá",
-        ir_posicao_24
+        ir_posicao_21
     )
     cartas.append(carta4)
 
