@@ -50,7 +50,14 @@ def executar_turno(jogo, jogador, interface):
             jogo.tratarFalencia(jogador)
 
 
-def executar_turno_com_ui(jogo, jogador, dialogo_compra, evento_ui, dialogo_cadeia=None):
+def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_cadeia=None):
+    tabuleiro = elementos_ui["tabuleiro"]
+    jogadores_ui = elementos_ui["jogadores_ui"]
+    painel = elementos_ui["painel"]
+    evento_ui = elementos_ui["evento_ui"]
+    botao_dado = elementos_ui["botao_dado"]
+    dado_ui = elementos_ui["dado_ui"]
+    
     if jogador.estaEmCadeia():
         if isinstance(jogador, JogadorIA):
             opcao = jogador.escolher_opcao_cadeia()
@@ -85,10 +92,61 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, evento_ui, dialogo_cade
         saiu = jogo.processarOpcoesCadeia(jogador, opcao)
         
         if not saiu:
+            jogo.proximo_turno()
             return
     
     try:
-        jogo.executar_turno()
+        #jogo.executar_turno()
+        resultado_dados = jogo.dados.lancar()
+        soma = jogo.dados.soma_dados()
+        foi_dupla = jogo.dados.isDupla()
+        
+        jogo._publicar_evento(TipoEvento.DADOS_LANCADOS, {
+            'jogador': jogador,
+            'dados': resultado_dados,
+            'soma': soma
+        })
+        
+        start_time = pygame.time.get_ticks()
+        DURACAO_ANIMACAO = 2500
+        
+        while pygame.time.get_ticks() - start_time < DURACAO_ANIMACAO:
+            tabuleiro.desenhar_tabuleiro()
+            jogadores_ui.desenhar_jogadores()
+            painel.desenhar()
+            evento_ui.desenhar()
+            botao_dado.desenhar()
+            dado_ui.desenhar() 
+            
+            pygame.display.flip()
+            tabuleiro.relogio.tick(60)
+            
+            for evento_anim in pygame.event.get():
+                if evento_anim.type == pygame.QUIT:
+                    pygame.quit()
+                    return
+                
+            
+        dado_ui.esconder()   
+        if foi_dupla:
+            jogo._contador_duplas += 1
+            jogo._publicar_evento(TipoEvento.DUPLA_LANCADA, {
+                'jogador': jogador,
+                'contador_duplas': jogo._contador_duplas
+            })
+            if jogo._contador_duplas >= jogo._regras.obter_max_duplas():
+                jogo._enviar_para_prisao(jogador)
+                jogo.proximo_turno()
+                return 
+        
+        
+        jogo._mover_jogador(jogador, soma)
+        
+       
+        if not foi_dupla:
+            jogo._contador_duplas = 0
+            jogo.proximo_turno()
+        
     except Exception as e:
         print(f"Erro ao executar turno do jogo: {e}")
         import traceback

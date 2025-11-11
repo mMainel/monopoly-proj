@@ -1,7 +1,7 @@
 import pygame
 import os
-from modules.peca import Peca  # Ensure this module exists
-from config import Config  # Ensure this module exists
+from modules.peca import Peca  
+from config import Config 
 
 class PainelJogadoresUI:
 

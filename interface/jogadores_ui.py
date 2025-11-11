@@ -1,10 +1,12 @@
 import pygame
 from config import Config
+from modules.peca import Peca
 
 class JogadoresUI:
-    def __init__(self, tela, jogadores):
+    def __init__(self, tela, jogadores, tabuleiro_ui):
         self.tela = tela
         self.jogadores = jogadores
+        self.tabuleiro_ui = tabuleiro_ui
 
     def desenhar_jogadores(self):
         for i, jogador in enumerate(self.jogadores):
@@ -15,7 +17,9 @@ class JogadoresUI:
         if indice_jogador >= 8:
             return
 
-        cor = Config.CORES_JOGADORES[indice_jogador % len(Config.CORES_JOGADORES)]
+        peca = jogador.getPeca() 
+        cor = Config.CORES_PECAS.get(peca, Config.PRETO)
+        #cor = Config.CORES_JOGADORES[indice_jogador % len(Config.CORES_JOGADORES)]
 
         numero_casa = jogador.getPosicao()
         pos_x, pos_y = self.calcular_posicao_jogador(numero_casa)
