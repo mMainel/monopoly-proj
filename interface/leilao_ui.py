@@ -23,10 +23,10 @@ class DialogoLeilaoUI:
         self.font_small = pygame.font.Font(None, 22)
         self.font_btn = pygame.font.Font(None, 28)
 
-        # Botões dinâmicos
+        # Botões dinâmicos (sem botão de finalizar; o leilão termina quando restar 1)
         self.btn_lance = pygame.Rect(0,0,0,0)
         self.btn_passar = pygame.Rect(0,0,0,0)
-        self.btn_finalizar = pygame.Rect(0,0,0,0)
+        self.btn_finalizar = None
         self.input_valor = _InputValor()
 
     def iniciar(self, leilao, jogadores, indice_inicial):
@@ -44,8 +44,8 @@ class DialogoLeilaoUI:
         w = 160; h = 50; gap = 30
         self.btn_lance = pygame.Rect(self.x + 50, by, w, h)
         self.btn_passar = pygame.Rect(self.x + 50 + w + gap, by, w, h)
-        self.btn_finalizar = pygame.Rect(self.x + self.largura - 50 - w, by, w, h)
-        self.input_valor.rect = pygame.Rect(self.x + self.largura//2 - 90, by, 180, h)
+        # Campo de lance alinhado à direita, sem sobrepor o botão PASSAR
+        self.input_valor.rect = pygame.Rect(self.x + self.largura - 50 - 180, by, 180, h)
 
     def handle_event(self, e):
         if not self.ativo or self.finalizado:
@@ -61,26 +61,34 @@ class DialogoLeilaoUI:
                     valor = max(self.leilao.getLanceMaior(), 0) + 10
                 if self.leilao.fazerLance(jogador_atual, valor):
                     self.mensagem = f"{jogador_atual.getNome()} fez lance: R$ {valor}"
+                    self._proximo_jogador()
                 else:
-                    self.mensagem = f"Lance inválido de {jogador_atual.getNome()}"
-                self._proximo_jogador()
+                    minimo = max(self.leilao.getLanceMaior(), 0) + 1
+                    self.mensagem = f"Lance inválido. Mínimo: R$ {minimo}. Tente novamente."
             elif self.btn_passar.collidepoint((mx,my)):
                 self.mensagem = f"{jogador_atual.getNome()} passou"
                 # Desistir remove jogador
                 self.leilao.desistir(jogador_atual)
                 self._proximo_jogador(remover=True)
-            elif self.btn_finalizar.collidepoint((mx,my)):
-                self._finalizar()
 
     def _proximo_jogador(self, remover=False):
         if self.finalizado:
             return
         if remover:
+            # Remover o jogador atual da ordem e manter o índice no mesmo lugar
             self.jogadores_ordenados = [j for j in self.jogadores_ordenados if j in self.leilao.getParticipantes()]
-        if len(self.leilao.getParticipantes()) <= 1:
-            self._finalizar()
-            return
-        self.indice_atual = (self.indice_atual + 1) % len(self.jogadores_ordenados)
+            if len(self.leilao.getParticipantes()) <= 1:
+                self._finalizar()
+                return
+            # Se o índice ficou fora do tamanho por ter removido o último, volta para 0
+            if self.indice_atual >= len(self.jogadores_ordenados):
+                self.indice_atual = 0
+            # Não incrementa o índice aqui para não pular um jogador
+        else:
+            if len(self.leilao.getParticipantes()) <= 1:
+                self._finalizar()
+                return
+            self.indice_atual = (self.indice_atual + 1) % len(self.jogadores_ordenados)
 
     def _finalizar(self):
         vencedor, valor = self.leilao.finalizarLeilao()
@@ -139,10 +147,10 @@ class DialogoLeilaoUI:
         if not self.finalizado:
             self._draw_button(self.btn_lance, "LANCE", mouse, (0,140,0), (0,180,0))
             self._draw_button(self.btn_passar, "PASSAR", mouse, (140,0,0), (180,0,0))
-            self._draw_button(self.btn_finalizar, "FINALIZAR", mouse, (0,0,140), (0,0,180))
             self.input_valor.desenhar(self.tela)
         else:
-            self._draw_button(self.btn_finalizar, "FECHAR", mouse, (0,0,140), (0,0,180))
+            # Finalizado: sem botão; o fechamento é automático pelo controlador externo
+            pass
 
     def _draw_button(self, rect, texto, mouse, cor, cor_hover):
         c = cor_hover if rect.collidepoint(mouse) else cor
