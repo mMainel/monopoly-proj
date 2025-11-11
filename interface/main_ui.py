@@ -4,7 +4,10 @@ from interface.painel_jogadores_ui import PainelJogadoresUI
 from interface.jogadores_ui import JogadoresUI
 from interface.botao_dado_ui import BotaoDadoUI
 from interface.evento_ui import EventoUI, DialogoCompraUI
+from interface.dialogo_cadeia_ui import DialogoOpcoesCadeiaUI
 from turno import executar_turno_com_ui
+from modules.observador import Observador
+from modules.eventoJogo import TipoEvento
 
 def main_ui(jogo):
     pygame.init()
@@ -15,9 +18,7 @@ def main_ui(jogo):
     botao_dado = BotaoDadoUI(tabuleiro.tela, jogo)
     evento_ui = EventoUI(tabuleiro.tela)
     dialogo_compra = DialogoCompraUI(tabuleiro.tela)
-    
-    from modules.observador import Observador
-    from modules.eventoJogo import TipoEvento
+    dialogo_cadeia = DialogoOpcoesCadeiaUI(tabuleiro.tela)
     
     class ObservadorUI(Observador):
         def __init__(self, evento_ui):
@@ -115,18 +116,19 @@ def main_ui(jogo):
                 rodando = False
             
             dialogo_compra.handle_event(evento)
+            dialogo_cadeia.handle_event(evento)
             
-            if not dialogo_compra.ativo:
+            if not dialogo_compra.ativo and not dialogo_cadeia.ativo:
                 botao_dado.handle_event(evento)
 
-        if botao_dado.foi_clicado() and not turno_em_andamento and not dialogo_compra.ativo:
+        if botao_dado.foi_clicado() and not turno_em_andamento and not dialogo_compra.ativo and not dialogo_cadeia.ativo:
             try:
                 turno_em_andamento = True
                 botao_dado.desabilitar()
                 
                 jogador_atual = jogo.jogadorAtual
                 
-                executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, evento_ui)
+                executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, evento_ui, dialogo_cadeia)
                 
                 vencedor = jogo.verificar_vencedor()
                 if vencedor:
@@ -150,6 +152,7 @@ def main_ui(jogo):
         evento_ui.desenhar()
         botao_dado.desenhar()
         dialogo_compra.desenhar()
+        dialogo_cadeia.desenhar()
         pygame.display.flip()
         tabuleiro.relogio.tick(60)
 

@@ -1,8 +1,8 @@
 from modules.peca import Peca
 
 class Config:
-    LARGURA_TELA = 1200
-    ALTURA_TELA = 700
+    LARGURA_TELA = 1900
+    ALTURA_TELA = 1000
 
     BRANCO = (255, 255, 255)
     PRETO = (0, 0, 0)
