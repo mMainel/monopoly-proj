@@ -1,8 +1,10 @@
 from modules.carta import CartaSorte, CartaCofre, CartaSairCadeia, TipoCarta
+from modules.eventoJogo import TipoEvento
 
 def criar_cartas_sorte(jogo) -> list:
     """
     Cria as cartas do baralho Sorte com contexto universitário
+    ATUALIZADO: Agora publica eventos quando cartas são executadas
 
     espera:
         jogo: Jogo - instância do jogo para acesso a componentes
@@ -11,9 +13,11 @@ def criar_cartas_sorte(jogo) -> list:
     """
     cartas = []
 
+    # ===== CARTA ESPECIAL: SAIR DA CADEIA =====
     carta_sair_cadeia = CartaSairCadeia(TipoCarta.SORTE)
     cartas.append(carta_sair_cadeia)
 
+    # ===== CARTA 1: IR PARA INÍCIO =====
     def ir_para_inicio(jogador):
         passou = jogador.irPara(0)
         if passou and jogo.banco:
@@ -25,8 +29,16 @@ def criar_cartas_sorte(jogo) -> list:
     )
     cartas.append(carta1)
 
+    # ===== CARTAS QUE DÃO DINHEIRO =====
     def receber_150(jogador):
         jogador.receberDinheiro(150)
+        # Publicar evento
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_DINHEIRO, {
+                'jogador': jogador,
+                'valor': 150,
+                'motivo': 'Carta Sorte'
+            })
 
     carta2 = CartaSorte(
         "Você ganhou o prêmio de melhor TCC do semestre! Receba R$ 150",
@@ -36,6 +48,12 @@ def criar_cartas_sorte(jogo) -> list:
 
     def receber_100(jogador):
         jogador.receberDinheiro(100)
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_DINHEIRO, {
+                'jogador': jogador,
+                'valor': 100,
+                'motivo': 'Carta Sorte'
+            })
 
     carta3 = CartaSorte(
         "Sua bolsa de iniciação científica foi aprovada! Receba R$ 100",
@@ -43,12 +61,58 @@ def criar_cartas_sorte(jogo) -> list:
     )
     cartas.append(carta3)
 
-    def ir_posicao_24(jogador):
-        jogador.irPara(24)
+    def receber_50(jogador):
+        jogador.receberDinheiro(50)
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_DINHEIRO, {
+                'jogador': jogador,
+                'valor': 50,
+                'motivo': 'Carta Sorte'
+            })
+
+    carta7 = CartaSorte(
+        "Você vendeu seus resumos para outros alunos! Receba R$ 50",
+        receber_50
+    )
+    cartas.append(carta7)
+
+    def receber_200(jogador):
+        jogador.receberDinheiro(200)
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_DINHEIRO, {
+                'jogador': jogador,
+                'valor': 200,
+                'motivo': 'Carta Sorte'
+            })
+
+    carta8 = CartaSorte(
+        "Bolsa PROUNI aprovada! Receba R$ 200",
+        receber_200
+    )
+    cartas.append(carta8)
+
+    def receber_75(jogador):
+        jogador.receberDinheiro(75)
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_DINHEIRO, {
+                'jogador': jogador,
+                'valor': 75,
+                'motivo': 'Carta Sorte'
+            })
+
+    carta10 = CartaSorte(
+        "Você ganhou uma competição de hackathon! Receba R$ 75",
+        receber_75
+    )
+    cartas.append(carta10)
+
+    # ===== CARTAS DE MOVIMENTO =====
+    def ir_posicao_21(jogador):
+        jogador.irPara(21)
 
     carta4 = CartaSorte(
         "Você foi convidado para uma palestra na Economia. Avance até lá",
-        ir_posicao_24
+        ir_posicao_21
     )
     cartas.append(carta4)
 
@@ -74,52 +138,37 @@ def criar_cartas_sorte(jogo) -> list:
     )
     cartas.append(carta6)
 
-    def receber_50(jogador):
-        jogador.receberDinheiro(50)
-
-    carta7 = CartaSorte(
-        "Você vendeu seus resumos para outros alunos! Receba R$ 50",
-        receber_50
-    )
-    cartas.append(carta7)
-
-    def receber_200(jogador):
-        jogador.receberDinheiro(200)
-
-    carta8 = CartaSorte(
-        "Bolsa PROUNI aprovada! Receba R$ 200",
-        receber_200
-    )
-    cartas.append(carta8)
-
+    # ===== CARTA ESPECIAL: RECEBER DE CADA JOGADOR =====
     def receber_de_cada_jogador(jogador):
+        total_recebido = 0
         for j in jogo.jogadores:
             if j != jogador and not j.verificarFalencia():
                 if jogo.banco:
                     jogo.banco.transferir(j, jogador, 50)
                 else:
                     j.pagarAluguel(jogador, 50)
+                total_recebido += 50
+        
+        # Publicar evento com total recebido
+        if hasattr(jogo, '_publicar_evento') and total_recebido > 0:
+            jogo._publicar_evento(TipoEvento.JOGADOR_RECEBEU_DINHEIRO, {
+                'jogador': jogador,
+                'valor': total_recebido,
+                'motivo': 'Aniversário - Carta Sorte'
+            })
 
     carta9 = CartaSorte(
-        "É seu aniversário! Festa no Bandeijão. Cada colega te dá R$ 50",
+        "É seu aniversário! Festa no Bandejão. Cada colega te dá R$ 50",
         receber_de_cada_jogador
     )
     cartas.append(carta9)
-
-    def receber_75(jogador):
-        jogador.receberDinheiro(75)
-
-    carta10 = CartaSorte(
-        "Você ganhou uma competição de hackathon! Receba R$ 75",
-        receber_75
-    )
-    cartas.append(carta10)
 
     return cartas
 
 def criar_cartas_cofre(jogo) -> list:
     """
     Cria as cartas do baralho Cofre (Community Chest) com contexto universitário
+    ATUALIZADO: Agora publica eventos quando cartas são executadas
 
     espera:
         jogo: Jogo - instância do jogo para acesso a componentes
@@ -128,9 +177,11 @@ def criar_cartas_cofre(jogo) -> list:
     """
     cartas = []
 
+    # ===== CARTA ESPECIAL: SAIR DA CADEIA =====
     carta_sair_cadeia = CartaSairCadeia(TipoCarta.COFRE)
     cartas.append(carta_sair_cadeia)
 
+    # ===== CARTA QUE ENVIA PARA CADEIA =====
     def ir_cadeia(jogador):
         jogador.entrarCadeia()
 
@@ -140,11 +191,21 @@ def criar_cartas_cofre(jogo) -> list:
     )
     cartas.append(carta1)
 
+    # ===== CARTAS QUE COBRAM DINHEIRO =====
     def pagar_50(jogador):
+        valor = 50
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, 50, "Taxa de segunda chamada")
+            jogo.banco.cobrarTaxa(jogador, valor, "Taxa de segunda chamada")
         else:
-            jogador.pagarAoBanco(50)
+            jogador.pagarAoBanco(valor)
+        
+        # Publicar evento
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': valor,
+                'motivo': 'Carta Cofre'
+            })
 
     carta2 = CartaCofre(
         "Você perdeu a prova e precisa pagar taxa de segunda chamada. Pague R$ 50",
@@ -153,10 +214,18 @@ def criar_cartas_cofre(jogo) -> list:
     cartas.append(carta2)
 
     def pagar_100(jogador):
+        valor = 100
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, 100, "Multa por atraso de matrícula")
+            jogo.banco.cobrarTaxa(jogador, valor, "Multa por atraso de matrícula")
         else:
-            jogador.pagarAoBanco(100)
+            jogador.pagarAoBanco(valor)
+        
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': valor,
+                'motivo': 'Carta Cofre'
+            })
 
     carta3 = CartaCofre(
         "Você atrasou a matrícula. Pague multa de R$ 100",
@@ -165,10 +234,18 @@ def criar_cartas_cofre(jogo) -> list:
     cartas.append(carta3)
 
     def pagar_150(jogador):
+        valor = 150
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, 150, "Reposição de livros da biblioteca")
+            jogo.banco.cobrarTaxa(jogador, valor, "Reposição de livros da biblioteca")
         else:
-            jogador.pagarAoBanco(150)
+            jogador.pagarAoBanco(valor)
+        
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': valor,
+                'motivo': 'Carta Cofre'
+            })
 
     carta4 = CartaCofre(
         "Você perdeu livros da biblioteca. Pague R$ 150 pela reposição",
@@ -176,41 +253,19 @@ def criar_cartas_cofre(jogo) -> list:
     )
     cartas.append(carta4)
 
-    def pagar_reparos(jogador):
-        total_casas = jogador.getTotalCasas()
-        total_hoteis = jogador.getTotalHoteis()
-        custo = (total_casas * 25) + (total_hoteis * 100)
-        if custo > 0:
-            if jogo.banco:
-                jogo.banco.cobrarTaxa(jogador, custo, "Manutenção de repúblicas")
-            else:
-                jogador.pagarAoBanco(custo)
-
-    carta5 = CartaCofre(
-        "Manutenção das repúblicas estudantis. Pague R$ 25 por república e R$ 100 por prédio",
-        pagar_reparos
-    )
-    cartas.append(carta5)
-
-    def pagar_cada_jogador(jogador):
-        for j in jogo.jogadores:
-            if j != jogador and not j.verificarFalencia():
-                if jogo.banco:
-                    jogo.banco.transferir(jogador, j, 50)
-                else:
-                    jogador.pagarAluguel(j, 50)
-
-    carta6 = CartaCofre(
-        "Você foi eleito diretor do centro acadêmico. Pague R$ 50 para cada colega pela festa",
-        pagar_cada_jogador
-    )
-    cartas.append(carta6)
-
     def pagar_75(jogador):
+        valor = 75
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, 75, "Taxa de laboratório de Química")
+            jogo.banco.cobrarTaxa(jogador, valor, "Taxa de laboratório de Química")
         else:
-            jogador.pagarAoBanco(75)
+            jogador.pagarAoBanco(valor)
+        
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': valor,
+                'motivo': 'Carta Cofre'
+            })
 
     carta7 = CartaCofre(
         "Você quebrou um béquer no laboratório. Pague R$ 75",
@@ -218,20 +273,19 @@ def criar_cartas_cofre(jogo) -> list:
     )
     cartas.append(carta7)
 
-    def ir_inicio_sem_salario(jogador):
-        jogador.irPara(0)
-
-    carta8 = CartaCofre(
-        "Você foi reprovado e precisa refazer o período. Volte ao INÍCIO (sem receber R$ 200)",
-        ir_inicio_sem_salario
-    )
-    cartas.append(carta8)
-
     def pagar_200(jogador):
+        valor = 200
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, 200, "Mensalidade atrasada")
+            jogo.banco.cobrarTaxa(jogador, valor, "Mensalidade atrasada")
         else:
-            jogador.pagarAoBanco(200)
+            jogador.pagarAoBanco(valor)
+        
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': valor,
+                'motivo': 'Carta Cofre'
+            })
 
     carta9 = CartaCofre(
         "Mensalidade da universidade particular atrasada. Pague R$ 200",
@@ -240,15 +294,84 @@ def criar_cartas_cofre(jogo) -> list:
     cartas.append(carta9)
 
     def pagar_120(jogador):
+        valor = 120
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, 120, "Taxa de formatura")
+            jogo.banco.cobrarTaxa(jogador, valor, "Taxa de formatura")
         else:
-            jogador.pagarAoBanco(120)
+            jogador.pagarAoBanco(valor)
+        
+        if hasattr(jogo, '_publicar_evento'):
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': valor,
+                'motivo': 'Carta Cofre'
+            })
 
     carta10 = CartaCofre(
         "Taxa antecipada de formatura. Pague R$ 120",
         pagar_120
     )
     cartas.append(carta10)
+
+    # ===== CARTA DE REPAROS (CALCULA BASEADO EM CASAS/HOTÉIS) =====
+    def pagar_reparos(jogador):
+        total_casas = jogador.getTotalCasas()
+        total_hoteis = jogador.getTotalHoteis()
+        custo = (total_casas * 25) + (total_hoteis * 100)
+        
+        if custo > 0:
+            if jogo.banco:
+                jogo.banco.cobrarTaxa(jogador, custo, "Manutenção de repúblicas")
+            else:
+                jogador.pagarAoBanco(custo)
+            
+            # Publicar evento
+            if hasattr(jogo, '_publicar_evento'):
+                jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                    'jogador': jogador,
+                    'valor': custo,
+                    'motivo': 'Manutenção - Carta Cofre'
+                })
+
+    carta5 = CartaCofre(
+        "Manutenção das repúblicas estudantis. Pague R$ 25 por república e R$ 100 por prédio",
+        pagar_reparos
+    )
+    cartas.append(carta5)
+
+    # ===== CARTA ESPECIAL: PAGAR CADA JOGADOR =====
+    def pagar_cada_jogador(jogador):
+        total_pago = 0
+        for j in jogo.jogadores:
+            if j != jogador and not j.verificarFalencia():
+                if jogo.banco:
+                    jogo.banco.transferir(jogador, j, 50)
+                else:
+                    jogador.pagarAluguel(j, 50)
+                total_pago += 50
+        
+        # Publicar evento com total pago
+        if hasattr(jogo, '_publicar_evento') and total_pago > 0:
+            jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                'jogador': jogador,
+                'valor': total_pago,
+                'motivo': 'Diretor do CA - Carta Cofre'
+            })
+
+    carta6 = CartaCofre(
+        "Você foi eleito diretor do centro acadêmico. Pague R$ 50 para cada colega pela festa",
+        pagar_cada_jogador
+    )
+    cartas.append(carta6)
+
+    # ===== CARTA: IR INÍCIO SEM SALÁRIO =====
+    def ir_inicio_sem_salario(jogador):
+        jogador.irPara(0)
+
+    carta8 = CartaCofre(
+        "Você foi reprovado e precisa refazer o período. Volte ao INÍCIO (sem receber R$ 200)",
+        ir_inicio_sem_salario
+    )
+    cartas.append(carta8)
 
     return cartas

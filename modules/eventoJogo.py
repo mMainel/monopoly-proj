@@ -27,6 +27,12 @@ class TipoEvento(Enum):
     LEILAO_LANCE_DADO = auto()
     LEILAO_FINALIZADO = auto()
     LEILAO_SEM_VENCEDOR = auto()
+    
+    CARTA_SORTE_PEGA = auto()
+    CARTA_COFRE_PEGA = auto()
+    JOGADOR_RECEBEU_DINHEIRO = auto()
+    JOGADOR_PAGOU_TAXA = auto()
+    JOGADOR_RECEBEU_CARTA_SAIR_CADEIA = auto()
 
 @dataclass(frozen=True)
 class EventoJogo:
