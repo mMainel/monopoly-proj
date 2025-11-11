@@ -1,4 +1,4 @@
-from modules.carta import CartaSorte, CartaReves, CartaSairCadeia, TipoCarta
+from modules.carta import CartaSorte, CartaCofre, CartaSairCadeia, TipoCarta
 
 def criar_cartas_sorte(jogo) -> list:
     """
@@ -117,24 +117,24 @@ def criar_cartas_sorte(jogo) -> list:
 
     return cartas
 
-def criar_cartas_reves(jogo) -> list:
+def criar_cartas_cofre(jogo) -> list:
     """
-    Cria as cartas do baralho Revés com contexto universitário
+    Cria as cartas do baralho Cofre (Community Chest) com contexto universitário
 
     espera:
         jogo: Jogo - instância do jogo para acesso a componentes
     retorna:
-        list - lista de cartas revés
+        list - lista de cartas cofre
     """
     cartas = []
 
-    carta_sair_cadeia = CartaSairCadeia(TipoCarta.REVES)
+    carta_sair_cadeia = CartaSairCadeia(TipoCarta.COFRE)
     cartas.append(carta_sair_cadeia)
 
     def ir_cadeia(jogador):
         jogador.entrarCadeia()
 
-    carta1 = CartaReves(
+    carta1 = CartaCofre(
         "Você colou na prova e foi pego! Vá direto para a Reitoria (cadeia). Não passe pelo INÍCIO",
         ir_cadeia
     )
@@ -146,7 +146,7 @@ def criar_cartas_reves(jogo) -> list:
         else:
             jogador.pagarAoBanco(50)
 
-    carta2 = CartaReves(
+    carta2 = CartaCofre(
         "Você perdeu a prova e precisa pagar taxa de segunda chamada. Pague R$ 50",
         pagar_50
     )
@@ -158,7 +158,7 @@ def criar_cartas_reves(jogo) -> list:
         else:
             jogador.pagarAoBanco(100)
 
-    carta3 = CartaReves(
+    carta3 = CartaCofre(
         "Você atrasou a matrícula. Pague multa de R$ 100",
         pagar_100
     )
@@ -170,7 +170,7 @@ def criar_cartas_reves(jogo) -> list:
         else:
             jogador.pagarAoBanco(150)
 
-    carta4 = CartaReves(
+    carta4 = CartaCofre(
         "Você perdeu livros da biblioteca. Pague R$ 150 pela reposição",
         pagar_150
     )
@@ -186,7 +186,7 @@ def criar_cartas_reves(jogo) -> list:
             else:
                 jogador.pagarAoBanco(custo)
 
-    carta5 = CartaReves(
+    carta5 = CartaCofre(
         "Manutenção das repúblicas estudantis. Pague R$ 25 por república e R$ 100 por prédio",
         pagar_reparos
     )
@@ -200,7 +200,7 @@ def criar_cartas_reves(jogo) -> list:
                 else:
                     jogador.pagarAluguel(j, 50)
 
-    carta6 = CartaReves(
+    carta6 = CartaCofre(
         "Você foi eleito diretor do centro acadêmico. Pague R$ 50 para cada colega pela festa",
         pagar_cada_jogador
     )
@@ -212,7 +212,7 @@ def criar_cartas_reves(jogo) -> list:
         else:
             jogador.pagarAoBanco(75)
 
-    carta7 = CartaReves(
+    carta7 = CartaCofre(
         "Você quebrou um béquer no laboratório. Pague R$ 75",
         pagar_75
     )
@@ -221,7 +221,7 @@ def criar_cartas_reves(jogo) -> list:
     def ir_inicio_sem_salario(jogador):
         jogador.irPara(0)
 
-    carta8 = CartaReves(
+    carta8 = CartaCofre(
         "Você foi reprovado e precisa refazer o período. Volte ao INÍCIO (sem receber R$ 200)",
         ir_inicio_sem_salario
     )
@@ -233,7 +233,7 @@ def criar_cartas_reves(jogo) -> list:
         else:
             jogador.pagarAoBanco(200)
 
-    carta9 = CartaReves(
+    carta9 = CartaCofre(
         "Mensalidade da universidade particular atrasada. Pague R$ 200",
         pagar_200
     )
@@ -245,7 +245,7 @@ def criar_cartas_reves(jogo) -> list:
         else:
             jogador.pagarAoBanco(120)
 
-    carta10 = CartaReves(
+    carta10 = CartaCofre(
         "Taxa antecipada de formatura. Pague R$ 120",
         pagar_120
     )

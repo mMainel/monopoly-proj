@@ -6,7 +6,7 @@ class TipoCarta(Enum):
     Tipos de carta disponíveis no jogo
     """
     SORTE = "SORTE"
-    REVES = "REVES"
+    COFRE = "COFRE"
 
 class Carta(ABC):
     """
@@ -61,9 +61,9 @@ class CartaSorte(Carta):
         if self.acao_callback:
             self.acao_callback(jogador)
 
-class CartaReves(Carta):
+class CartaCofre(Carta):
     """
-    Carta do tipo Revés
+    Carta do tipo Cofre (Community Chest)
     """
 
     def __init__(self, descricao: str, acao_callback=None):
@@ -72,7 +72,7 @@ class CartaReves(Carta):
 
     def executar(self, jogador) -> None:
         """
-        Executa a ação de revés para o jogador
+        Executa a ação de cofre para o jogador
 
         espera:
             jogador: Jogador - jogador que sorteou a carta
@@ -105,7 +105,7 @@ class CartaSairCadeia(Carta):
 
     def getTipo(self) -> TipoCarta:
         """
-        Retorna o tipo da carta (Sorte ou Revés)
+        Retorna o tipo da carta (Sorte ou Cofre)
 
         espera:
             nenhum parâmetro
