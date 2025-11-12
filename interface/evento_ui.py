@@ -1,25 +1,31 @@
 import pygame
 from config import Config
 from collections import deque
-import time
 
 class EventoUI:
     def __init__(self, tela):
         self.tela = tela
-        self.eventos = deque(maxlen=5)
+        self.eventos = deque(maxlen=20)
         self.fonte = pygame.font.Font(None, 24)
-        self.largura = 400
-        self.altura = 130
+        self.largura = 175
+        self.altura = 300
 
-        centro_tabuleiro_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO // 2
-        centro_tabuleiro_y = Config.POS_Y_INICIO + Config.TAMANHO_TABULEIRO // 2
-
-        self.x = centro_tabuleiro_x - self.largura // 2
-        self.y = centro_tabuleiro_y - 150
+        board_end_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO
+        largura_tela = Config.LARGURA_TELA
+        proporcao_painel = 0.30
+        margem_painel = 16
+        largura_painel_calc = max(240, int(largura_tela * proporcao_painel))
+        largura_painel_calc = min(int(largura_tela * 0.45), largura_painel_calc)
+        panel_start_x = largura_tela - largura_painel_calc - margem_painel
+        
+        gap_width = panel_start_x - board_end_x
+        centro_gap_x = board_end_x + (gap_width // 2)
+        
+        self.x = centro_gap_x - self.largura // 2
+        self.y = Config.POS_Y_INICIO + 20
 
     def adicionar_evento(self, texto):
-        timestamp = time.strftime("%H:%M:%S")
-        self.eventos.append(f"[{timestamp}] {texto}")
+        self.eventos.append(texto)
     
     def desenhar(self):
         s = pygame.Surface((self.largura, self.altura))
@@ -34,12 +40,30 @@ class EventoUI:
         titulo = self.fonte.render("EVENTOS DO JOGO", True, Config.BRANCO)
         titulo_rect = titulo.get_rect(center=(self.x + self.largura // 2, self.y + 15))
         self.tela.blit(titulo, titulo_rect)
+        
+        fonte_evento = pygame.font.Font(None, 20)
+        largura_disponivel = self.largura - 20
+        altura_linha = 20
         y_offset = 40
         
-        for evento in reversed(self.eventos):
-            texto_render = pygame.font.Font(None, 20).render(evento, True, Config.BRANCO)
+        altura_disponivel = self.altura - y_offset - 10
+        max_linhas = int(altura_disponivel / altura_linha)
+        
+        eventos_para_mostrar = list(reversed(self.eventos))[:max_linhas]
+        
+        for evento in eventos_para_mostrar:
+            texto_cortado = evento
+            texto_render = fonte_evento.render(texto_cortado, True, Config.BRANCO)
+            
+            while texto_render.get_width() > largura_disponivel and len(texto_cortado) > 3:
+                texto_cortado = texto_cortado[:-1]
+                texto_render = fonte_evento.render(texto_cortado + "...", True, Config.BRANCO)
+            
+            if len(texto_cortado) <= 3:
+                texto_render = fonte_evento.render("...", True, Config.BRANCO)
+            
             self.tela.blit(texto_render, (self.x + 10, self.y + y_offset))
-            y_offset += 20
+            y_offset += altura_linha
 
 
 class PopupEventosUI:

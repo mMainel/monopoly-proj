@@ -167,3 +167,24 @@ class Regras:
                            if hasattr(p, 'cor') and p.cor == cor]
 
         return len(propriedades_cor) >= total_necessario
+
+    def _total_propriedades_grupo(self, cor: str) -> int:
+        """
+        Retorna o número total de propriedades em um grupo de cor
+
+        espera:
+            cor: str - cor do grupo
+        retorna:
+            int - quantidade total de propriedades no grupo
+        """
+        grupos_propriedades = {
+            "Marrom": 2,
+            "Azul Claro": 3,
+            "Rosa": 3,
+            "Laranja": 3,
+            "Vermelho": 3,
+            "Amarelo": 3,
+            "Verde": 3,
+            "Azul Escuro": 2
+        }
+        return grupos_propriedades.get(cor, 0)

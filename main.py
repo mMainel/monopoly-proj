@@ -25,7 +25,6 @@ def main() -> None:
     
     jogo = inicializar_jogo(nomes)
 
-    # aqui chamamos a UI passando a instância do jogo
     main_ui(jogo)
 
 def solicitar_numero_jogadores() -> int:

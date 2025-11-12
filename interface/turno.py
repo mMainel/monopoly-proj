@@ -161,9 +161,7 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_c
         
         if propriedades_construiveis:
             if isinstance(jogador, JogadorIA):
-                propriedade_escolhida = jogador.escolher_propriedade_construir(propriedades_construiveis)
-                if propriedade_escolhida:
-                    jogo.construirCasa(propriedade_escolhida, jogador)
+                jogador.tentar_construir_casas(jogo)
             else:
                 pass
     except Exception as e:
@@ -173,32 +171,30 @@ def executar_turno_com_ui(jogo, jogador, dialogo_compra, elementos_ui, dialogo_c
         if hasattr(jogo, 'tratarFalencia'):
             jogo.tratarFalencia(jogador)
     
-    try:
-        if dialogo_menu:
-            # Garantia: evitar que outros diálogos fiquem ativos ao mesmo tempo
-            for d in (dialogo_escolher, dialogo_negociacao, dialogo_leilao, dialogo_gerenciar):
-                try:
-                    if d is not None:
-                        d.ativo = False
-                except Exception:
-                    pass
-            # Exibe menu com opções
-            dialogo_menu.mostrar()
-            _loop_modal(dialogo_menu, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui, popup_eventos)
-            escolha = dialogo_menu.obter_opcao()
-            if escolha == 'negociar' and dialogo_escolher and dialogo_negociacao:
-                _fluxo_negociacao(jogo, jogador, dialogo_escolher, dialogo_negociacao, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
-            elif escolha == 'gerenciar' and dialogo_gerenciar:
-                # Garantir que o menu anterior não permaneça ativo
-                try:
-                    dialogo_menu.ativo = False
-                except Exception:
-                    pass
-                dialogo_gerenciar.mostrar(jogo, jogador)
-                _loop_modal(dialogo_gerenciar, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui, popup_eventos)
-            # 'passar' não faz nada extra (turno já avançado pelo jogo)
-    except Exception as e:
-        print(f"Erro no menu de fim de turno: {e}")
+    if not isinstance(jogador, JogadorIA):
+        try:
+            if dialogo_menu:
+                for d in (dialogo_escolher, dialogo_negociacao, dialogo_leilao, dialogo_gerenciar):
+                    try:
+                        if d is not None:
+                            d.ativo = False
+                    except Exception:
+                        pass
+                dialogo_menu.mostrar()
+                _loop_modal(dialogo_menu, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui, popup_eventos)
+                escolha = dialogo_menu.obter_opcao()
+                if escolha == 'negociar' and dialogo_escolher and dialogo_negociacao:
+                    _fluxo_negociacao(jogo, jogador, dialogo_escolher, dialogo_negociacao, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
+                elif escolha == 'gerenciar' and dialogo_gerenciar:
+                    try:
+                        dialogo_menu.ativo = False
+                    except Exception:
+                        pass
+                    dialogo_gerenciar.mostrar(jogo, jogador)
+                    _loop_modal(dialogo_gerenciar, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui, popup_eventos)
+                # 'passar' não faz nada extra (turno já avançado pelo jogo)
+        except Exception as e:
+            print(f"Erro no menu de fim de turno: {e}")
 
 
 
@@ -357,6 +353,23 @@ def _fluxo_negociacao(jogo, jogador_atual, dialogo_escolher, dialogo_negociacao,
     dialogo_negociacao.mostrar(jogador_atual, alvo)
     _loop_modal(dialogo_negociacao, tabuleiro, jogadores_ui, painel, evento_ui, botao_dado, dado_ui)
     resultado = dialogo_negociacao.obter_resultado()
+
+    # Se o alvo for IA, precisa avaliar a proposta
+    if isinstance(alvo, JogadorIA):
+        # IA avalia se a negociação é vantajosa
+        aceita = alvo.avaliar_negociacao(
+            props_oferecidas=resultado['props_b'],  # O que IA vai dar
+            props_recebidas=resultado['props_a'],   # O que IA vai receber
+            dinheiro_oferecido=resultado['dinheiro_b'],  # Dinheiro que IA vai dar
+            dinheiro_recebido=resultado['dinheiro_a']    # Dinheiro que IA vai receber
+        )
+        
+        if not aceita:
+            try:
+                evento_ui.adicionar_evento(f"{alvo.getNome()} rejeitou a negociação")
+            except:
+                pass
+            return
 
     din_a = resultado['dinheiro_a']
     din_b = resultado['dinheiro_b']

@@ -188,10 +188,10 @@ class DialogoNegociacaoUI:
         self.btn_confirmar = None
         self.btn_cancelar = None
         self.font_titulo = pygame.font.Font(None, 34)
-        self.font_item = pygame.font.Font(None, 24)
+        self.font_item = pygame.font.Font(None, 22)
 
-        self.largura = 900
-        self.altura = 520
+        self.largura = 950
+        self.altura = 600
         self.x = (Config.LARGURA_TELA - self.largura)//2
         self.y = (Config.ALTURA_TELA - self.altura)//2
 
@@ -203,10 +203,10 @@ class DialogoNegociacaoUI:
         self.ativo = True
 
         w = 140; h = 40
-        self.oferta_a = _InputNumero(self.x + 160, self.y + self.altura - 90, w, h, 0)
-        self.oferta_b = _InputNumero(self.x + self.largura - 160 - w, self.y + self.altura - 90, w, h, 0)
-        self.btn_confirmar = pygame.Rect(self.x + self.largura//2 - 160, self.y + self.altura - 60, 140, 40)
-        self.btn_cancelar = pygame.Rect(self.x + self.largura//2 + 20, self.y + self.altura - 60, 140, 40)
+        self.oferta_a = _InputNumero(self.x + 180, self.y + self.altura - 100, w, h, 0)
+        self.oferta_b = _InputNumero(self.x + self.largura - 180 - w, self.y + self.altura - 100, w, h, 0)
+        self.btn_confirmar = pygame.Rect(self.x + self.largura//2 - 160, self.y + self.altura - 55, 140, 40)
+        self.btn_cancelar = pygame.Rect(self.x + self.largura//2 + 20, self.y + self.altura - 55, 140, 40)
 
     def handle_event(self, e):
         if not self.ativo:
@@ -243,10 +243,10 @@ class DialogoNegociacaoUI:
         }
 
     def _rect_item_a(self, idx):
-        return pygame.Rect(self.x + 30, self.y + 100 + idx*36, 360, 30)
+        return pygame.Rect(self.x + 30, self.y + 100 + idx*40, 400, 35)
 
     def _rect_item_b(self, idx):
-        return pygame.Rect(self.x + self.largura - 30 - 360, self.y + 100 + idx*36, 360, 30)
+        return pygame.Rect(self.x + self.largura - 30 - 400, self.y + 100 + idx*40, 400, 35)
 
     def desenhar(self):
         if not self.ativo:
@@ -264,6 +264,11 @@ class DialogoNegociacaoUI:
         tb = self.font_titulo.render(self.jog_b.getNome(), True, Config.PRETO)
         self.tela.blit(ta, (self.x + 30, self.y + 40))
         self.tela.blit(tb, (self.x + self.largura - 30 - tb.get_width(), self.y + 40))
+        
+        saldo_a = self.font_item.render(f"Saldo: R${self.jog_a.getSaldo()}", True, (0, 100, 0))
+        saldo_b = self.font_item.render(f"Saldo: R${self.jog_b.getSaldo()}", True, (0, 100, 0))
+        self.tela.blit(saldo_a, (self.x + 30, self.y + 70))
+        self.tela.blit(saldo_b, (self.x + self.largura - 30 - saldo_b.get_width(), self.y + 70))
 
         for idx, p in enumerate(self.jog_a.getPropriedades()):
             nome = p.getNome() if hasattr(p, 'getNome') else 'Prop'
@@ -295,8 +300,8 @@ class DialogoNegociacaoUI:
 
         fa = self.font_item.render("Oferece: R$", True, (0,0,0))
         fb = self.font_item.render("Oferece: R$", True, (0,0,0))
-        self.tela.blit(fa, (self.x + 30, self.y + self.altura - 84))
-        self.tela.blit(fb, (self.x + self.largura - 30 - 360, self.y + self.altura - 84))
+        self.tela.blit(fa, (self.x + 30, self.y + self.altura - 94))
+        self.tela.blit(fb, (self.x + self.largura - 30 - 400, self.y + self.altura - 94))
         self.oferta_a.desenhar(self.tela)
         self.oferta_b.desenhar(self.tela)
 
@@ -368,14 +373,16 @@ class DialogoNegociacaoUI:
                 elif hasattr(prop, 'getNumCasas'):
                     nc = prop.getNumCasas()
                     if nc > 0:
-                        info_extra = f" ({nc} casa{'s' if nc>1 else ''})"
+                        info_extra = f" ({nc}c)"
         except Exception:
             pass
-        texto = f"{nome} - R$ {preco}"
+        
+        nome_curto = nome if len(nome) <= 18 else nome[:15] + "..."
+        texto = f"{nome_curto} - R${preco}"
         if info_extra:
             texto += info_extra
         if not self._pode_trocar(prop) and info_extra:
-            texto += " [não trocável]"
+            texto += " [X]"
         return texto
 
 
@@ -387,7 +394,7 @@ class DialogoMenuFimTurnoUI:
         self.font_titulo = pygame.font.Font(None, 36)
         self.font_btn = pygame.font.Font(None, 30)
         self.largura = 520
-        self.altura = 280
+        self.altura = 320  # Aumentado de 280 para 320
         self.x = (Config.LARGURA_TELA - self.largura)//2
         self.y = (Config.ALTURA_TELA - self.altura)//2
         self.btn_negociar = pygame.Rect(0,0,0,0)
@@ -571,7 +578,8 @@ class DialogoGerenciarPropriedadesUI:
                     habil_vender = self._pode_vender_casa(p)
                     habil_hipo = self._pode_hipotecar(p)
                     habil_deshipo = self._pode_deshipotecar(p)
-                    self._desenhar_botao(rect_comp, "Comprar", habil_compra)
+                    texto_comprar = "Comprar Hotel" if (hasattr(p, 'getNumCasas') and p.getNumCasas() >= 4) else "Comprar"
+                    self._desenhar_botao(rect_comp, texto_comprar, habil_compra)
                     self._desenhar_botao(rect_vend, "Vender", habil_vender)
                     self._desenhar_botao(rect_hipo, "Hipotecar", habil_hipo)
                     self._desenhar_botao(rect_deshipo, "Deshipotecar", habil_deshipo)
@@ -656,8 +664,6 @@ class DialogoGerenciarPropriedadesUI:
                 return False
             if hasattr(prop, 'tem_hotel') and prop.tem_hotel:
                 return False
-            if hasattr(prop, 'getNumCasas') and prop.getNumCasas() >= 4:
-                return False
             if hasattr(prop, 'estaHipotecada') and prop.estaHipotecada():
                 return False
             return True
@@ -666,6 +672,8 @@ class DialogoGerenciarPropriedadesUI:
 
     def _pode_vender_casa(self, prop):
         try:
+            if hasattr(prop, 'temHotel') and prop.temHotel():
+                return True
             if hasattr(prop, 'getNumCasas') and prop.getNumCasas() > 0:
                 return True
             return False
@@ -692,11 +700,19 @@ class DialogoGerenciarPropriedadesUI:
     def _executar_acao(self, acao, prop):
         try:
             if acao == 'comprar':
-                if hasattr(self.jogo, 'construirCasa'):
-                    self.jogo.construirCasa(prop, self.jogador)
+                if hasattr(prop, 'getNumCasas') and prop.getNumCasas() >= 4:
+                    if hasattr(self.jogo, 'construirHotel'):
+                        self.jogo.construirHotel(prop, self.jogador)
+                else:
+                    if hasattr(self.jogo, 'construirCasa'):
+                        self.jogo.construirCasa(prop, self.jogador)
             elif acao == 'vender':
-                if hasattr(self.jogo, 'venderCasa'):
-                    self.jogo.venderCasa(prop, self.jogador)
+                if hasattr(prop, 'temHotel') and prop.temHotel():
+                    if hasattr(self.jogo, 'venderHotel'):
+                        self.jogo.venderHotel(prop, self.jogador)
+                else:
+                    if hasattr(self.jogo, 'venderCasa'):
+                        self.jogo.venderCasa(prop, self.jogador)
             elif acao == 'hipotecar':
                 if hasattr(self.jogo, 'hipotecarPropriedade'):
                     self.jogo.hipotecarPropriedade(prop, self.jogador)

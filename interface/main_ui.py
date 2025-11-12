@@ -323,8 +323,51 @@ def main_ui(jogo):
             if not dialogo_compra.ativo and not dialogo_cadeia.ativo:
                 botao_dado.handle_event(evento)
 
-        # Executar turno quando botão clicado
-        if botao_dado.foi_clicado() and not turno_em_andamento and not dialogo_compra.ativo and not dialogo_cadeia.ativo:
+        # Verificar se é turno da IA e executar automaticamente
+        from modules.jogadorIA import JogadorIA
+        jogador_atual = jogo.jogadorAtual
+        if isinstance(jogador_atual, JogadorIA) and not turno_em_andamento:
+            # IA joga automaticamente - pequeno delay para visualização
+            pygame.time.wait(500)
+            turno_em_andamento = True
+            botao_dado.desabilitar()
+            
+            try:
+                elementos_ui = {
+                    "tabuleiro": tabuleiro,
+                    "jogadores_ui": jogadores_ui,
+                    "painel": painel,
+                    "evento_ui": evento_ui,
+                    "botao_dado": botao_dado,
+                    "dado_ui": dado_ui,
+                    "dialogo_escolher": dialogo_escolher,
+                    "dialogo_negociacao": dialogo_negociacao,
+                    "dialogo_confirmar": dialogo_confirmar,
+                    "dialogo_leilao": dialogo_leilao,
+                    "dialogo_menu": dialogo_menu,
+                    "dialogo_gerenciar": dialogo_gerenciar,
+                    "popup_eventos": popup_eventos,
+                }
+                executar_turno_com_ui(jogo, jogador_atual, dialogo_compra, elementos_ui, dialogo_cadeia)
+                
+                # Verificar vencedor
+                vencedor = jogo.verificar_vencedor()
+                if vencedor:
+                    evento_ui.adicionar_evento(f"🏆 {vencedor.getNome()} VENCEU! 🏆")
+                    pygame.time.wait(3000)
+                    rodando = False
+                
+            except Exception as e:
+                print(f"Erro ao executar turno da IA: {e}")
+                import traceback
+                traceback.print_exc()
+            
+            finally:
+                turno_em_andamento = False
+                botao_dado.habilitar()
+
+        # Executar turno quando botão clicado (jogador humano)
+        elif botao_dado.foi_clicado() and not turno_em_andamento and not dialogo_compra.ativo and not dialogo_cadeia.ativo:
             turno_em_andamento = True
             botao_dado.desabilitar()
             
@@ -369,7 +412,11 @@ def main_ui(jogo):
         jogadores_ui.desenhar_jogadores()
         painel.desenhar()
         evento_ui.desenhar()
-        botao_dado.desenhar()
+        
+        # Só desenha botão de dados se for turno de jogador humano
+        if not isinstance(jogo.jogadorAtual, JogadorIA):
+            botao_dado.desenhar()
+        
         dado_ui.desenhar()
         dialogo_compra.desenhar()
         dialogo_cadeia.desenhar()

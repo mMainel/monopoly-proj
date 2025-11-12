@@ -1,6 +1,7 @@
 from config import Config
 import pygame
 import os
+from modules.tituloPropriedade import TituloPropriedade
 
 class TabuleiroUI:
     def __init__(self, jogo):
@@ -76,6 +77,128 @@ class TabuleiroUI:
             pygame.draw.rect(self.tela, Config.PRETO, rect, 1)
             
         self.tela.blit(self.imagem_fundo_tabuleiro, (Config.POS_X_INICIO, Config.POS_Y_INICIO))
+        
+        self._desenhar_construcoes()
+
+    def _desenhar_construcoes(self):
+        """Desenha casas (quadrados verdes) e hotéis (retângulo vermelho) nas propriedades"""
+        for idx, espaco in enumerate(self.jogo.tabuleiro.espacos):
+            if hasattr(espaco, 'titulo') and espaco.titulo:
+                titulo = espaco.titulo
+                if isinstance(titulo, TituloPropriedade):
+                    num_casas = titulo.getNumCasas()
+                    tem_hotel = titulo.temHotel()
+                    
+                    if tem_hotel:
+                        self._desenhar_hotel(idx)
+                    elif num_casas > 0:
+                        self._desenhar_casas(idx, num_casas)
+    
+    def _desenhar_casas(self, idx, num_casas):
+        """Desenha quadrados verdes representando casas em uma propriedade"""
+        rect = self._rects_espacos[idx]
+        if not rect:
+            return
+        
+        tamanho_casa = 8
+        espaco = 2
+        cor_casa = (0, 200, 0)
+        
+        if 1 <= idx <= 9:
+            y_base = rect.y + 5
+            largura_total = num_casas * tamanho_casa + (num_casas - 1) * espaco
+            x_inicio = rect.x + (rect.width - largura_total) // 2
+            
+            for i in range(num_casas):
+                x = x_inicio + i * (tamanho_casa + espaco)
+                pygame.draw.rect(self.tela, cor_casa, 
+                               pygame.Rect(x, y_base, tamanho_casa, tamanho_casa))
+                pygame.draw.rect(self.tela, Config.PRETO, 
+                               pygame.Rect(x, y_base, tamanho_casa, tamanho_casa), 1)
+                
+        elif 11 <= idx <= 19:
+            x_base = rect.x + 5
+            largura_total = num_casas * tamanho_casa + (num_casas - 1) * espaco
+            y_inicio = rect.y + (rect.height - largura_total) // 2
+            
+            for i in range(num_casas):
+                y = y_inicio + i * (tamanho_casa + espaco)
+                pygame.draw.rect(self.tela, cor_casa, 
+                               pygame.Rect(x_base, y, tamanho_casa, tamanho_casa))
+                pygame.draw.rect(self.tela, Config.PRETO, 
+                               pygame.Rect(x_base, y, tamanho_casa, tamanho_casa), 1)
+                
+        elif 21 <= idx <= 29:
+            y_base = rect.y + 5
+            largura_total = num_casas * tamanho_casa + (num_casas - 1) * espaco
+            x_inicio = rect.x + (rect.width - largura_total) // 2
+            
+            for i in range(num_casas):
+                x = x_inicio + i * (tamanho_casa + espaco)
+                pygame.draw.rect(self.tela, cor_casa, 
+                               pygame.Rect(x, y_base, tamanho_casa, tamanho_casa))
+                pygame.draw.rect(self.tela, Config.PRETO, 
+                               pygame.Rect(x, y_base, tamanho_casa, tamanho_casa), 1)
+                
+        elif 31 <= idx <= 39:
+            x_base = rect.x + 5
+            largura_total = num_casas * tamanho_casa + (num_casas - 1) * espaco
+            y_inicio = rect.y + (rect.height - largura_total) // 2
+            
+            for i in range(num_casas):
+                y = y_inicio + i * (tamanho_casa + espaco)
+                pygame.draw.rect(self.tela, cor_casa, 
+                               pygame.Rect(x_base, y, tamanho_casa, tamanho_casa))
+                pygame.draw.rect(self.tela, Config.PRETO, 
+                               pygame.Rect(x_base, y, tamanho_casa, tamanho_casa), 1)
+    
+    def _desenhar_hotel(self, idx):
+        """Desenha um retângulo vermelho representando um hotel em uma propriedade"""
+        rect = self._rects_espacos[idx]
+        if not rect:
+            return
+        
+        cor_hotel = (220, 20, 20)
+        tamanho_casa = 8
+        espaco = 2
+        largura_hotel = 2 * tamanho_casa + espaco
+        altura_hotel = tamanho_casa
+        
+        if 1 <= idx <= 9:
+            y_base = rect.y + 5
+            x_inicio = rect.x + (rect.width - largura_hotel) // 2
+            
+            pygame.draw.rect(self.tela, cor_hotel, 
+                           pygame.Rect(x_inicio, y_base, largura_hotel, altura_hotel))
+            pygame.draw.rect(self.tela, Config.PRETO, 
+                           pygame.Rect(x_inicio, y_base, largura_hotel, altura_hotel), 1)
+            
+        elif 11 <= idx <= 19:
+            x_base = rect.x + 5
+            y_inicio = rect.y + (rect.height - largura_hotel) // 2
+            
+            pygame.draw.rect(self.tela, cor_hotel, 
+                           pygame.Rect(x_base, y_inicio, altura_hotel, largura_hotel))
+            pygame.draw.rect(self.tela, Config.PRETO, 
+                           pygame.Rect(x_base, y_inicio, altura_hotel, largura_hotel), 1)
+            
+        elif 21 <= idx <= 29:
+            y_base = rect.y + 5
+            x_inicio = rect.x + (rect.width - largura_hotel) // 2
+            
+            pygame.draw.rect(self.tela, cor_hotel, 
+                           pygame.Rect(x_inicio, y_base, largura_hotel, altura_hotel))
+            pygame.draw.rect(self.tela, Config.PRETO, 
+                           pygame.Rect(x_inicio, y_base, largura_hotel, altura_hotel), 1)
+            
+        elif 31 <= idx <= 39:
+            x_base = rect.x + 5
+            y_inicio = rect.y + (rect.height - largura_hotel) // 2
+            
+            pygame.draw.rect(self.tela, cor_hotel, 
+                           pygame.Rect(x_base, y_inicio, altura_hotel, largura_hotel))
+            pygame.draw.rect(self.tela, Config.PRETO, 
+                           pygame.Rect(x_base, y_inicio, altura_hotel, largura_hotel), 1)
 
     def _calcular_rects_espacos(self):
         """Calcula os rects de clique para as 40 casas do tabuleiro na geometria atual."""

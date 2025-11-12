@@ -132,3 +132,186 @@ class JogadorIA(Jogador):
             bool - True se deve vender
         """
         return self.saldo < 50
+
+    def avaliar_negociacao(self, props_oferecidas, props_recebidas, dinheiro_oferecido, dinheiro_recebido) -> bool:
+        """
+        Avalia se uma proposta de negociação é vantajosa para a IA
+        
+        Critérios:
+        1. Monopólios da IA devem aumentar ou se manter na diferença total
+        2. Monopólios ganhos devem ser mais caros que os perdidos
+        
+        espera:
+            props_oferecidas: list - propriedades que IA vai dar
+            props_recebidas: list - propriedades que IA vai receber
+            dinheiro_oferecido: int - dinheiro que IA vai dar
+            dinheiro_recebido: int - dinheiro que IA vai receber
+        retorna:
+            bool - True se aceita a negociação
+        """
+        from modules.tituloPropriedade import TituloPropriedade
+        
+        props_atuais = self.getPropriedades().copy()
+        
+        for p in props_oferecidas:
+            if p in props_atuais:
+                props_atuais.remove(p)
+        
+        props_atuais.extend(props_recebidas)
+        
+        saldo_futuro = self.saldo - dinheiro_oferecido + dinheiro_recebido
+        
+        if saldo_futuro < 200:
+            return False
+        
+        monopolios_antes = self._contar_monopolios_e_proximidade(self.getPropriedades())
+        
+        monopolios_depois = self._contar_monopolios_e_proximidade(props_atuais)
+        
+        novos_monopolios = monopolios_depois['completos'] - monopolios_antes['completos']
+        monopolios_perdidos = monopolios_antes['completos'] - monopolios_depois['completos']
+        
+        if novos_monopolios > monopolios_perdidos:
+            return True
+        
+        if monopolios_perdidos > 0 and novos_monopolios == 0:
+            return False
+        
+        ganho_proximidade = 0
+        valor_grupos_ganhos = 0
+        valor_grupos_perdidos = 0
+        
+        for cor, info in monopolios_depois['grupos'].items():
+            antes = monopolios_antes['grupos'].get(cor, {'count': 0, 'total': 0, 'valor_total': 0})
+            
+            if info['count'] == info['total'] and antes['count'] < antes['total']:
+                ganho_proximidade += 3
+                valor_grupos_ganhos += info['valor_total']
+            
+            elif info['count'] > antes['count']:
+                ganho_proximidade += 1
+                valor_grupos_ganhos += info['valor_total']
+            
+            elif info['count'] < antes['count']:
+                perda = antes['count'] - info['count']
+                ganho_proximidade -= perda
+                valor_grupos_perdidos += antes['valor_total']
+        
+        for cor in monopolios_antes['grupos']:
+            if cor not in monopolios_depois['grupos']:
+                ganho_proximidade -= 2
+                valor_grupos_perdidos += monopolios_antes['grupos'][cor]['valor_total']
+        
+        valor_oferecido = sum(p.getPreco() for p in props_oferecidas if hasattr(p, 'getPreco'))
+        valor_recebido = sum(p.getPreco() for p in props_recebidas if hasattr(p, 'getPreco'))
+        
+        balanco_financeiro = (valor_recebido + dinheiro_recebido) - (valor_oferecido + dinheiro_oferecido)
+        
+        if ganho_proximidade <= 0:
+            return False
+        
+        if valor_grupos_perdidos > valor_grupos_ganhos:
+            if ganho_proximidade < 3:
+                return False
+        
+        if ganho_proximidade > 0 and balanco_financeiro > -300:
+            return True
+        
+        if ganho_proximidade >= 3:
+            return True
+        
+        return False
+
+    def _contar_monopolios_e_proximidade(self, propriedades_lista):
+        """
+        Analisa monopólios completos e proximidade de completar grupos
+        
+        espera:
+            propriedades_lista: list - lista de propriedades a analisar
+        retorna:
+            dict - informações sobre monopólios e grupos
+        """
+        from modules.tituloPropriedade import TituloPropriedade
+        from modules.regras import Regras
+        
+        regras = Regras()
+        grupos = {}
+        monopolios_completos = 0
+        
+        for prop in propriedades_lista:
+            if isinstance(prop, TituloPropriedade):
+                cor = prop.getCor()
+                if cor not in grupos:
+                    grupos[cor] = {
+                        'count': 0,
+                        'total': regras._total_propriedades_grupo(cor),
+                        'valor_total': 0
+                    }
+                grupos[cor]['count'] += 1
+                grupos[cor]['valor_total'] += prop.getPreco()
+        
+        for cor, info in grupos.items():
+            if info['count'] == info['total']:
+                monopolios_completos += 1
+        
+        return {
+            'completos': monopolios_completos,
+            'grupos': grupos
+        }
+
+    def tentar_construir_casas(self, jogo):
+        """
+        Tenta construir casas nas propriedades onde tem monopólio
+        IA constrói casas de forma equilibrada entre propriedades do mesmo grupo
+        Não constrói se ficar com saldo baixo (mínimo R$500)
+        
+        espera:
+            jogo: Jogo - instância do jogo para acessar métodos de construção
+        retorna:
+            None
+        """
+        from modules.tituloPropriedade import TituloPropriedade
+        
+        SALDO_MINIMO_SEGURANCA = 500
+        
+        grupos_monopolio = {}
+        for prop in self.getPropriedades():
+            if isinstance(prop, TituloPropriedade):
+                if self.possuiMonopolio(prop.getCor()):
+                    cor = prop.getCor()
+                    if cor not in grupos_monopolio:
+                        grupos_monopolio[cor] = []
+                    grupos_monopolio[cor].append(prop)
+        
+        for cor, propriedades in grupos_monopolio.items():
+            if any(p.estaHipotecada() for p in propriedades):
+                continue
+            
+            propriedades.sort(key=lambda p: p.getNumCasas())
+            propriedades.sort(key=lambda p: p.getNumCasas())
+            
+            for prop in propriedades:
+                if prop.temHotel():
+                    continue
+                
+                if prop.getNumCasas() >= 4:
+                    custo = prop.getCustoCasa()
+                    if self.saldo >= custo + SALDO_MINIMO_SEGURANCA:
+                        if hasattr(jogo, 'construirHotel'):
+                            sucesso = jogo.construirHotel(prop, self)
+                            if sucesso:
+                                continue
+                    continue
+                
+                custo = prop.getCustoCasa()
+                
+                if self.saldo >= custo + SALDO_MINIMO_SEGURANCA:
+                    min_casas = min(p.getNumCasas() for p in propriedades if not p.temHotel())
+                    
+                    if prop.getNumCasas() == min_casas:
+                        if hasattr(jogo, 'construirCasa'):
+                            sucesso = jogo.construirCasa(prop, self)
+                            if sucesso:
+                                continue
+                else:
+                    break

@@ -150,7 +150,7 @@ def rodar_setup_ui():
     caminho_assets_pecas = os.path.join(caminho_raiz, 'assets', 'pecas')
     
     background_image = pygame.image.load(caminho_imagem_lobby)
-    background_image = pygame.transform.scale(background_image, (Config.LARGURA_TELA, Config.ALTURA_TELA))
+    background_image = pygame.transform.scale(background_image, (TELA_W, TELA_H))
 
     fonte_titulo = pygame.font.Font(None, int(TELA_H * 0.071))
     fonte_label = pygame.font.Font(None, int(TELA_H * 0.04))
@@ -160,18 +160,18 @@ def rodar_setup_ui():
     fonte_peca = pygame.font.Font(None, int(TELA_H * 0.031))
     fonte_setas = pygame.font.Font(None, int(TELA_H * 0.051))
     
-    num_jogadores = 2
+    num_jogadores = 1
     botoes_num = []
     BTN_RAIO = int(TELA_H * 0.028)
     BTN_SPACING = int(TELA_W * 0.0125)
-    NUM_BOTOES = 7 
+    NUM_BOTOES = 8 
     
     total_largura_botoes = (NUM_BOTOES * (BTN_RAIO * 2)) + ((NUM_BOTOES - 1) * BTN_SPACING)
     start_x = (TELA_W - total_largura_botoes) // 2
     botoes_y = int(TELA_H * 0.314)
 
     for i in range(NUM_BOTOES):
-        num = i + 2
+        num = i + 1
         centro_x = start_x + (i * (BTN_RAIO * 2 + BTN_SPACING)) + BTN_RAIO
         botoes_num.append({'rect': pygame.Rect(centro_x - BTN_RAIO, botoes_y - BTN_RAIO, BTN_RAIO * 2, BTN_RAIO * 2), 'num': num})
 
@@ -251,7 +251,10 @@ def rodar_setup_ui():
         titulo_render = fonte_titulo.render("CONFIGURAR JOGO", True, Config.PRETO)
         tela.blit(titulo_render, (TELA_W // 2 - titulo_render.get_width() // 2, titulo_y))
 
-        label_render = fonte_label.render("Selecione a quantidade de jogadores", True, Config.PRETO)
+        label_text = "Selecione a quantidade de jogadores"
+        if num_jogadores == 1:
+            label_text = "1 jogador (você vs IA)"
+        label_render = fonte_label.render(label_text, True, Config.PRETO)
         tela.blit(label_render, (TELA_W // 2 - label_render.get_width() // 2, label_y))
         
         for btn in botoes_num:

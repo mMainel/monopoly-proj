@@ -30,16 +30,17 @@ class DadoUI:
 
         
         centro_tabuleiro_y = Config.POS_Y_INICIO + (Config.TAMANHO_TABULEIRO // 2)
+        offset_baixo = 80
         
         
         espacamento = int(self.tamanho_dado * 0.15)
         self.pos_dado1 = (
             centro_gap_x - self.tamanho_dado - espacamento,
-            centro_tabuleiro_y - (self.tamanho_dado // 2) 
+            centro_tabuleiro_y - (self.tamanho_dado // 2) + offset_baixo
         )
         self.pos_dado2 = (
             centro_gap_x + espacamento,
-            centro_tabuleiro_y - (self.tamanho_dado // 2) 
+            centro_tabuleiro_y - (self.tamanho_dado // 2) + offset_baixo
         )
       
         try:

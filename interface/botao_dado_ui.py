@@ -8,21 +8,37 @@ class BotaoDadoUI:
         self.clicado = False
         self.habilitado = True  
         
-        self.largura = 220
-        self.altura = 70
+        self.largura = 180
+        self.altura = 55
         
-        centro_tabuleiro_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO // 2
-        centro_tabuleiro_y = Config.POS_Y_INICIO + Config.TAMANHO_TABULEIRO // 2
+        # Calcular posição no gap entre tabuleiro e painel
+        board_end_x = Config.POS_X_INICIO + Config.TAMANHO_TABULEIRO
+        largura_tela = Config.LARGURA_TELA
+        proporcao_painel = 0.30
+        margem_painel = 16
+        largura_painel_calc = max(240, int(largura_tela * proporcao_painel))
+        largura_painel_calc = min(int(largura_tela * 0.45), largura_painel_calc)
+        panel_start_x = largura_tela - largura_painel_calc - margem_painel
+        
+        gap_width = panel_start_x - board_end_x
+        centro_gap_x = board_end_x + (gap_width // 2)
+        
+        centro_tabuleiro_y = Config.POS_Y_INICIO + (Config.TAMANHO_TABULEIRO // 2)
+        tamanho_dado = int(Config.TAMANHO_TABULEIRO * 0.10)
+        
+        offset_baixo = 80
+        y_dados = centro_tabuleiro_y - (tamanho_dado // 2) + offset_baixo
+        y_botao = y_dados + tamanho_dado + 60
         
         self.rect = pygame.Rect(
-            centro_tabuleiro_x - self.largura // 2,
-            centro_tabuleiro_y + 20,
+            centro_gap_x - self.largura // 2,
+            y_botao,
             self.largura,
             self.altura
         )
         
-        self.fonte = pygame.font.Font(None, 36)
-        self.fonte_nome = pygame.font.Font(None, 24)
+        self.fonte = pygame.font.Font(None, 32)
+        self.fonte_nome = pygame.font.Font(None, 20)
         self.cor_normal = (0, 120, 200)
         self.cor_hover = (0, 150, 255)
         self.cor_desabilitado = (100, 100, 100)
