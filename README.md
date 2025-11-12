@@ -20,3 +20,8 @@
     class testeClasse
     ```
 
+## Interface visual (pygame)
+- Componentes Pygame ficam em `modules/ui`
+- O módulo expõe classes reutilizáveis: `PropertyCard`, `EventCard`, `HouseToken` e `GameBoard`
+- Execute `python -m modules.ui.demo` para visualizar um exemplo rápido
+- Inicialize o pygame antes de usar (`pygame.init()`), depois crie e desenhe os componentes na sua janela
