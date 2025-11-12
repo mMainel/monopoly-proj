@@ -16,7 +16,7 @@ class BotaoDadoUI:
         
         self.rect = pygame.Rect(
             centro_tabuleiro_x - self.largura // 2,
-            centro_tabuleiro_y + 20,  # Logo abaixo do feed de eventos
+            centro_tabuleiro_y + 20,
             self.largura,
             self.altura
         )

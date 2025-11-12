@@ -144,10 +144,10 @@ def rodar_setup_ui():
     relogio = pygame.time.Clock()
     pygame.key.set_repeat(300, 30)
     
-    caminho_base = os.path.dirname(__file__) # .../interface
+    caminho_base = os.path.dirname(__file__)
     caminho_raiz = os.path.join(caminho_base, '..') 
     caminho_imagem_lobby = os.path.join(caminho_raiz, 'assets', 'lobby.png')
-    caminho_assets_pecas = os.path.join(caminho_raiz, 'assets', 'pecas') # Caminho para as peças
+    caminho_assets_pecas = os.path.join(caminho_raiz, 'assets', 'pecas')
     
     background_image = pygame.image.load(caminho_imagem_lobby)
     background_image = pygame.transform.scale(background_image, (Config.LARGURA_TELA, Config.ALTURA_TELA))
@@ -160,7 +160,6 @@ def rodar_setup_ui():
     fonte_peca = pygame.font.Font(None, int(TELA_H * 0.031))
     fonte_setas = pygame.font.Font(None, int(TELA_H * 0.051))
     
-    # --- Configuração Botões de Número (2-8) ---
     num_jogadores = 2
     botoes_num = []
     BTN_RAIO = int(TELA_H * 0.028)
@@ -185,7 +184,6 @@ def rodar_setup_ui():
     SELECTOR_HEIGHT = int(TELA_H * 0.078)
     BOX_SPACING = int(TELA_H * 0.062)
     
-    # Layout centralizado
     label_width = int(TELA_W * 0.108)
     spacing_after_box = int(TELA_W * 0.016)
     total_linha_width = label_width + BOX_WIDTH + spacing_after_box + SELECTOR_WIDTH
@@ -211,7 +209,6 @@ def rodar_setup_ui():
 
     atualizar_componentes_jogador(num_jogadores) 
 
-    # --- Botão Iniciar ---
     BTN_INICIAR_W = int(TELA_W * 0.183)
     BTN_INICIAR_H = int(TELA_H * 0.085) 
     btn_iniciar_y = int(TELA_H * 0.857)
@@ -257,7 +254,6 @@ def rodar_setup_ui():
         label_render = fonte_label.render("Selecione a quantidade de jogadores", True, Config.PRETO)
         tela.blit(label_render, (TELA_W // 2 - label_render.get_width() // 2, label_y))
         
-        # Seletor de número de jogadores (Botões Redondos)
         for btn in botoes_num:
             cor_fundo = Config.PRETO if btn['num'] == num_jogadores else Config.BRANCO
             cor_texto = Config.BRANCO if btn['num'] == num_jogadores else Config.PRETO

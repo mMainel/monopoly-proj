@@ -55,8 +55,9 @@ class Jogador:
         """
         posicao_antiga = self.posicao
         self.posicao = posicao % 40
-        passou_go = self.posicao < posicao_antiga and posicao >= posicao_antiga
-        
+        # Passou pelo GO se a nova posição for menor que a anterior (wrap-around)
+        passou_go = self.posicao < posicao_antiga
+
         return passou_go
     
     # DINHEIRO

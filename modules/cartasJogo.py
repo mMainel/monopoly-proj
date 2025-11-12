@@ -19,9 +19,31 @@ def criar_cartas_sorte(jogo) -> list:
 
     # ===== CARTA 1: IR PARA INÍCIO =====
     def ir_para_inicio(jogador):
+        # Move o jogador até a posição 0.
+        # Se passou pelo INÍCIO, reutiliza a rotina do jogo para processar a passagem
+        # (paga salário e publica o evento) para manter consistência com o fluxo
         passou = jogador.irPara(0)
-        if passou and jogo.banco:
-            jogo.banco.pagarSalario(jogador)
+        if passou:
+            try:
+                # Preferimos usar o método do jogo que já publica eventos
+                if hasattr(jogo, '_processar_passagem_inicio'):
+                    jogo._processar_passagem_inicio(jogador)
+                else:
+                    # Fallback: pagar diretamente pelo banco e publicar evento manualmente
+                    if jogo.banco:
+                        jogo.banco.pagarSalario(jogador)
+                    if hasattr(jogo, '_publicar_evento'):
+                        jogo._publicar_evento(TipoEvento.PASSOU_INICIO, {
+                            'jogador': jogador,
+                            'valor': jogo._regras.obter_salario_inicio() if hasattr(jogo, '_regras') else 0
+                        })
+            except Exception:
+                # Não quebrar o jogo por erros em publicação de evento
+                try:
+                    if jogo.banco:
+                        jogo.banco.pagarSalario(jogador)
+                except Exception:
+                    pass
 
     carta1 = CartaSorte(
         "Seu artigo foi aceito em congresso internacional! Avance até o INÍCIO e receba R$ 200",

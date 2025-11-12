@@ -78,7 +78,6 @@ class PainelJogadoresUI:
 
         espaco_por_jogador = max(60, coluna_altura // jogadores_por_coluna)
 
-        # Guardar retângulos para hover
         self._cards_rects = []
 
         mouse_pos = pygame.mouse.get_pos()
@@ -104,7 +103,6 @@ class PainelJogadoresUI:
 
             self.desenhar_jogador(jogador, base_x, base_y, coluna_largura, altura_bloco)
 
-        # Desenhar tooltip se estiver sobre um jogador
         if hover_jogador:
             self._desenhar_tooltip_propriedades(hover_jogador, mouse_pos)
 
@@ -165,14 +163,12 @@ class PainelJogadoresUI:
             cadeia_render = self.fonte_info.render(cadeia_texto, True, (180, 40, 40))
             self.tela.blit(cadeia_render, (x + largura - padding - cadeia_render.get_width(), y + padding))
 
-        # Removido bloco de propriedades inline; agora exibido via tooltip no hover.
 
     def _desenhar_tooltip_propriedades(self, jogador, mouse_pos):
         propriedades = jogador.getPropriedades()
         if not propriedades:
             return
 
-        # Preparar linhas
         linhas = [f"{jogador.getNome()} - Propriedades:"]
         for prop in propriedades:
             nome = prop.getNome() if hasattr(prop, 'getNome') else 'Prop'
@@ -182,7 +178,6 @@ class PainelJogadoresUI:
         espacamento = 4
         fonte = self.fonte_propriedades
 
-        # Calcular largura/altura
         larguras = [fonte.render(l, True, Config.PRETO).get_width() for l in linhas]
         alturas = [fonte.render(l, True, Config.PRETO).get_height() for l in linhas]
         largura_tooltip = max(larguras) + padding * 2

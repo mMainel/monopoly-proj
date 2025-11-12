@@ -23,7 +23,6 @@ class DialogoLeilaoUI:
         self.font_small = pygame.font.Font(None, 22)
         self.font_btn = pygame.font.Font(None, 28)
 
-        # Botões dinâmicos (sem botão de finalizar; o leilão termina quando restar 1)
         self.btn_lance = pygame.Rect(0,0,0,0)
         self.btn_passar = pygame.Rect(0,0,0,0)
         self.btn_finalizar = None
@@ -44,7 +43,6 @@ class DialogoLeilaoUI:
         w = 160; h = 50; gap = 30
         self.btn_lance = pygame.Rect(self.x + 50, by, w, h)
         self.btn_passar = pygame.Rect(self.x + 50 + w + gap, by, w, h)
-        # Campo de lance alinhado à direita, sem sobrepor o botão PASSAR
         self.input_valor.rect = pygame.Rect(self.x + self.largura - 50 - 180, by, 180, h)
 
     def handle_event(self, e):
@@ -56,7 +54,6 @@ class DialogoLeilaoUI:
             jogador_atual = self.jogadores_ordenados[self.indice_atual]
             if self.btn_lance.collidepoint((mx,my)):
                 valor = self.input_valor.get_valor()
-                # Se valor 0, usar incremento automático
                 if valor == 0:
                     valor = max(self.leilao.getLanceMaior(), 0) + 10
                 if self.leilao.fazerLance(jogador_atual, valor):
@@ -74,20 +71,38 @@ class DialogoLeilaoUI:
     def _proximo_jogador(self, remover=False):
         if self.finalizado:
             return
+        participantes_restantes = len(self.leilao.getParticipantes())
+        ha_lance = (self.leilao.getLanceMaior() if self.leilao else 0) > 0
+
         if remover:
-            # Remover o jogador atual da ordem e manter o índice no mesmo lugar
             self.jogadores_ordenados = [j for j in self.jogadores_ordenados if j in self.leilao.getParticipantes()]
-            if len(self.leilao.getParticipantes()) <= 1:
+            participantes_restantes = len(self.leilao.getParticipantes())
+            ha_lance = (self.leilao.getLanceMaior() if self.leilao else 0) > 0
+            if participantes_restantes == 0 or (participantes_restantes == 1 and ha_lance):
                 self._finalizar()
                 return
-            # Se o índice ficou fora do tamanho por ter removido o último, volta para 0
+            if participantes_restantes == 1 and not ha_lance:
+                self.indice_atual = 0
+                ultimo = self.jogadores_ordenados[0]
+                self.mensagem = f"Último participante: {ultimo.getNome()} pode dar um lance mínimo ou passar"
+                return
             if self.indice_atual >= len(self.jogadores_ordenados):
                 self.indice_atual = 0
-            # Não incrementa o índice aqui para não pular um jogador
         else:
-            if len(self.leilao.getParticipantes()) <= 1:
+            participantes_restantes = len(self.leilao.getParticipantes())
+            ha_lance = (self.leilao.getLanceMaior() if self.leilao else 0) > 0
+
+            if participantes_restantes == 0 or (participantes_restantes == 1 and ha_lance):
                 self._finalizar()
                 return
+
+            if participantes_restantes == 1 and not ha_lance:
+                self.jogadores_ordenados = [j for j in self.jogadores_ordenados if j in self.leilao.getParticipantes()]
+                self.indice_atual = 0
+                ultimo = self.jogadores_ordenados[0]
+                self.mensagem = f"Último participante: {ultimo.getNome()} pode dar um lance mínimo ou passar"
+                return
+
             self.indice_atual = (self.indice_atual + 1) % len(self.jogadores_ordenados)
 
     def _finalizar(self):
@@ -117,7 +132,6 @@ class DialogoLeilaoUI:
         titulo = self.font_titulo.render(f"Leilão: {prop_nome}", True, Config.PRETO)
         self.tela.blit(titulo,(self.x+30,self.y+30))
 
-        # Informações
         maior = self.leilao.getLanceMaior() if self.leilao else 0
         lider = self.leilao.getLiderAtual()
         lider_nome = lider.getNome() if lider else "-"
@@ -134,7 +148,6 @@ class DialogoLeilaoUI:
         msg = self.font_small.render(self.mensagem, True, (30,30,30))
         self.tela.blit(msg,(self.x+30,self.y+200))
 
-        # Lista de participantes
         y_list = self.y + 240
         for j in self.leilao.getParticipantes():
             lance = self.leilao.getLancesRealizados().get(j,0)
@@ -142,14 +155,12 @@ class DialogoLeilaoUI:
             self.tela.blit(line,(self.x+30,y_list))
             y_list += 24
 
-        # Controles
         mouse = pygame.mouse.get_pos()
         if not self.finalizado:
             self._draw_button(self.btn_lance, "LANCE", mouse, (0,140,0), (0,180,0))
             self._draw_button(self.btn_passar, "PASSAR", mouse, (140,0,0), (180,0,0))
             self.input_valor.desenhar(self.tela)
         else:
-            # Finalizado: sem botão; o fechamento é automático pelo controlador externo
             pass
 
     def _draw_button(self, rect, texto, mouse, cor, cor_hover):

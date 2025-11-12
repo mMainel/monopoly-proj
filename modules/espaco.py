@@ -140,6 +140,16 @@ class EspacoVaParaCadeia(Espaco):
             None
         """
         jogador.entrarCadeia()
+        # Publica evento para UI/observadores
+        try:
+            from modules.eventoJogo import TipoEvento
+            if hasattr(jogo, '_publicar_evento'):
+                jogo._publicar_evento(TipoEvento.JOGADOR_PRESO, {
+                    'jogador': jogador,
+                    'motivo': 'va_para_cadeia'
+                })
+        except Exception:
+            pass
 
 class EspacoEstacionamentoGratuito(Espaco):
     """
@@ -180,7 +190,19 @@ class EspacoImposto(Espaco):
             None
         """
         if jogo.banco:
-            jogo.banco.cobrarTaxa(jogador, self.valor, self.nome)
+            sucesso = jogo.banco.cobrarTaxa(jogador, self.valor, self.nome)
+            # Publicar evento para UI (popup e feed)
+            try:
+                from modules.eventoJogo import TipoEvento
+                if hasattr(jogo, '_publicar_evento'):
+                    jogo._publicar_evento(TipoEvento.JOGADOR_PAGOU_TAXA, {
+                        'jogador': jogador,
+                        'valor': self.valor,
+                        'motivo': self.nome,
+                        'sucesso': sucesso,
+                    })
+            except Exception:
+                pass
         else:
             jogador.pagarAoBanco(self.valor)
 

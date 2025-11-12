@@ -1,14 +1,12 @@
 from modules.peca import Peca
 
 class Config:
-    LARGURA_TELA = 1280
-    ALTURA_TELA = 720
-
+    LARGURA_TELA = 1920
+    ALTURA_TELA = 1080
     BRANCO = (255, 255, 255)
     PRETO = (0, 0, 0)
     CINZA_CLARO = (200, 200, 200)
     VERMELHO = (255, 0, 0)
-    
     CORES_PECAS = {
         Peca.ARTES: (128, 0, 128),
         Peca.BIOLOGIA: (0, 128, 0),
@@ -31,14 +29,8 @@ class Config:
     ROSA = (255, 192, 203)
     CIANO = (0, 255, 255)
     MARROM = (165, 42, 42)
-
-    CORES_JOGADORES = [
-        VERMELHO, AZUL, VERDE, AMARELO,
-        LARANJA, ROXO, ROSA, CIANO
-    ]
-
-    RAIO_JOGADOR = 15 
-
+    CORES_JOGADORES = [VERMELHO, AZUL, VERDE, AMARELO, LARANJA, ROXO, ROSA, CIANO]
+    RAIO_JOGADOR = 15
     PROPORCAO_TABULEIRO = 0.7
     PROPORCAO_PAINEL = 0.3
 
@@ -53,7 +45,7 @@ class Config:
         cls.TAMANHO_CASA_PEQUENA = min(casa_largura, casa_altura)
         cls.TAMANHO_CASA_CANTO = int(cls.TAMANHO_CASA_PEQUENA * 1.5)
         cls.TAMANHO_TABULEIRO = (cls.TAMANHO_CASA_CANTO * 2 + 9 * cls.TAMANHO_CASA_PEQUENA)
-        cls.POS_X_INICIO = 20  
+        cls.POS_X_INICIO = 20
         cls.POS_Y_INICIO = (cls.ALTURA_TELA - cls.TAMANHO_TABULEIRO) // 2
         cls.RAIO_JOGADOR = cls.TAMANHO_CASA_PEQUENA // 3
         cls.POS_CASA_PARTIDA_X = cls.POS_X_INICIO + cls.TAMANHO_CASA_CANTO

@@ -19,7 +19,6 @@ class JogadoresUI:
 
         peca = jogador.getPeca() 
         cor = Config.CORES_PECAS.get(peca, Config.PRETO)
-        #cor = Config.CORES_JOGADORES[indice_jogador % len(Config.CORES_JOGADORES)]
 
         numero_casa = jogador.getPosicao()
         pos_x, pos_y = self.calcular_posicao_jogador(numero_casa)
